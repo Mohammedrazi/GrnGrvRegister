@@ -97,7 +97,27 @@ function toast(m,bad){const t=document.getElementById('toast');t.textContent=m;t
 const KEY='grn_register_v1';let mem={};
 function store(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):{}}catch(e){return mem}}
 function persist(o){mem=o;try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
-async function api(b){const o=store();L.forEach(l=>o[l]=o[l]||[]);const a=o[b.loc];
+/* ===== GOOGLE SHEET SYNC ===== */
+const API_URL='https://script.google.com/macros/s/AKfycbwDN_N5eQQJIPl_hFuUgeftUrKKL5jjrSIeaFxaZBXt_Yt1Z60yFXOvkiIo886Jav2N/exec';   // from Apps Script > Deploy > Web app
+const API_TOKEN='MarkSave-Qatar-7391';                      // must match TOKEN in the Apps Script
+const POLL_MS=8000;                                        // how often sheet edits are pulled into the website
+const SYNC=/^https:\/\/script\.google\.com\//.test(API_URL);
+let lastSig='';
+async function apiCall(body){
+ const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:API_TOKEN,...body})});
+ const j=await r.json();if(!j.ok)throw new Error(j.error||'Sheet error');return j}
+async function pull(){
+ if(!SYNC)return false;
+ const r=await fetch(API_URL+'?action=read&token='+encodeURIComponent(API_TOKEN)+'&_='+Date.now());
+ const j=await r.json();if(!j.ok)throw new Error(j.error||'Sheet error');
+ const sig=JSON.stringify([j.rows,j.master]);if(sig===lastSig)return false;lastSig=sig;
+ persist(j.rows);
+ if(j.master&&Object.keys(j.master).length){Object.keys(VEND).forEach(k=>delete VEND[k]);Object.assign(VEND,j.master);
+  const dl=document.getElementById('vl');if(dl)dl.replaceChildren(...Object.keys(VEND).map(c=>$('option',{value:c})))}
+ return true}
+async function api(b){
+ if(SYNC){const j=await apiCall(b);if(b.action==='add'&&j.id!=null){}return j}
+ const o=store();L.forEach(l=>o[l]=o[l]||[]);const a=o[b.loc];
  if(b.action==='add')a.push({id:Date.now()+'-'+Math.random().toString(36).slice(2,6),...b.data});
  else if(b.action==='update'){const r=a.find(x=>x.id===b.id);if(r)Object.assign(r,b.data)}
  else if(b.action==='delete')o[b.loc]=a.filter(x=>x.id!==b.id);
@@ -180,8 +200,11 @@ async function restore(){const f=$('input',{type:'file',accept:'.xlsx'});f.oncha
     d[k]=v;if(v)any=true});
    if(any)o[loc].push({id:Date.now()+'-'+Math.random().toString(36).slice(2,8),...d})}}
  if(!found)throw 0;
- if(!confirm('Replace all current entries with this Excel backup?'))return;persist(o);loadAll();toast('Excel backup restored')}catch(e){console.error(e);toast('Not a valid Excel backup file',1)}};f.click()}
-async function loadAll(){const o=store();L.forEach(l=>rows[l]=o[l]||[]);if(page==='entry')tabs();else if(focused){pend=true;tabs()}else go()}
+ if(SYNC){toast('Restore is off while Google Sheet sync is on – paste the data into the sheet instead',1);return}if(!confirm('Replace all current entries with this Excel backup?'))return;persist(o);loadAll();toast('Excel backup restored')}catch(e){console.error(e);toast('Not a valid Excel backup file',1)}};f.click()}
+function paintAll(){const o=store();L.forEach(l=>rows[l]=o[l]||[]);if(page==='entry')tabs();else if(focused){pend=true;tabs()}else go()}
+async function loadAll(){try{await pull()}catch(e){console.error(e);toast('Could not reach Google Sheet: '+e.message,1)}paintAll()}
+if(SYNC)setInterval(async()=>{if(!authed()||document.hidden||focused)return;try{if(await pull())paintAll()}catch(e){console.error(e)}},POLL_MS);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SYNC&&authed())loadAll()});
 function tabs(){const b=document.getElementById('tabs');b.replaceChildren(
  $('button',{className:'tab'+(page==='entry'?' on':''),textContent:'➕ New Entry',on:{click:()=>{page='entry';go()}}}),
  $('button',{className:'tab'+(page==='sum'?' on':''),textContent:'📊 Summary',on:{click:()=>{page='sum';go()}}}),...L.map(l=>$('button',{className:'tab'+(page===l?' on':''),on:{click:()=>{page=l;go()}}},l,$('small',{textContent:'('+rows[l].length+')'}))),
