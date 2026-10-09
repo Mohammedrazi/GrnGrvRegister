@@ -340,23 +340,30 @@ function sugg(){
   $('div',{className:'card',style:'margin-bottom:14px'},$('div',{className:'cr'},$('img',{className:'logo',src:document.querySelector('.logo').src,alt:''}),$('div',{},$('h2',{textContent:'About this website',style:'margin:0 0 4px'}),$('div',{},'GRN & GRV Register – Mark & Save, Qatar'),$('div',{},'Website created by ',$('b',{textContent:'Mohammed Razi'}))))),
   $('div',{className:'card',style:'margin-bottom:14px'},$('h2',{textContent:'💡 Suggestions',style:'margin-top:0'}),$('label',{textContent:'Name (optional)'}),nm,$('br'),$('br'),$('label',{textContent:'Suggestion'}),tx,$('br'),$('br'),add),
   $('div',{className:'card'},$('h2',{textContent:'All suggestions',style:'margin-top:0'}),list))}
-const SORT={};
+const SORT={},PAGE=100,COL=new Intl.Collator(undefined,{numeric:true,sensitivity:'base'});
+let _TS,_TR;const mkTS=()=>(_TS=_TS||$('select',{},ST.map(x=>$('option',{value:x,textContent:x||'—'})))).cloneNode(true),mkTR=()=>(_TR=_TR||$('select',{},RM.map(x=>$('option',{value:x,textContent:x||'—'})))).cloneNode(true);
 const sval=(r,k)=>k==='vn'?(vname(r.vc)||(r.vn&&!String(r.vn).startsWith('#')?r.vn:'')||''):String(r[k]==null?'':r[k]).trim();
 function reg(l){
- const s=$('input',{placeholder:'Search this register…',value:q,on:{input:e=>{q=e.target.value;body()}}});
+ let ob,qt;const s=$('input',{placeholder:'Search this register…',value:q,on:{input:e=>{q=e.target.value;clearTimeout(qt);qt=setTimeout(()=>body(),180)}}});
  const tb=$('tbody');
  const body=()=>{const f=q.toLowerCase();let arr=rows[l].map((r,i)=>[r,i]).filter(([r])=>!f||Object.values(r).join(' ').toLowerCase().includes(f));
-  const so=SORT[l];if(so&&so.k!=='#'){arr.sort((a,b)=>{const x=sval(a[0],so.k),y=sval(b[0],so.k);if(!x&&!y)return a[1]-b[1];if(!x)return 1;if(!y)return -1;return so.d*x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'})||a[1]-b[1]})}else if(so&&so.k==='#'&&so.d<0)arr.reverse();
-  tb.replaceChildren(...arr.map(([r,i])=>{
+  const so=SORT[l];if(so&&so.k!=='#'){arr.sort((a,b)=>{const x=sval(a[0],so.k),y=sval(b[0],so.k);if(!x&&!y)return a[1]-b[1];if(!x)return 1;if(!y)return -1;return so.d*COL.compare(x,y)||a[1]-b[1]})}else if(so&&so.k==='#'&&so.d<0)arr.reverse();
+  ob&&ob.disconnect();
+  const mkRow=([r,i])=>{
   const tr=$('tr',{},$('td',{className:'n',textContent:i+1}));
   const vn=$('td',{className:'v',textContent:r.vn&&!String(r.vn).startsWith('#')?r.vn:(vname(r.vc)||(r.vc?'⚠ not in Master':''))});
   F.forEach(([k,,t])=>{if(t==='v')return tr.append(vn);
-   const i2=t==='s'?$('select',{},ST.map(x=>$('option',{value:x,textContent:x||'—'}))):t==='r'?$('select',{},selOpts(RM,r[k]||'')):$('input',{type:t==='date'?'date':'text',list:k==='vc'?'vl':undefined});
+   const i2=t==='s'?mkTS():t==='r'?(RM.includes(r[k]||'')?mkTR():$('select',{},selOpts(RM,r[k]||''))):$('input',{type:t==='date'?'date':'text',list:k==='vc'?'vl':undefined});
    i2.value=r[k]||'';if(!canEdit(l)||(adminOnly(k)&&!isAdmin()))i2.disabled=true;
    i2.addEventListener('change',async()=>{try{await api({action:'update',loc:l,id:r.id,data:{[k]:i2.value.trim()}});r[k]=i2.value.trim();if(k==='vc')vn.textContent=vname(r.vc)||'⚠ not in Master';toast('Saved')}catch(e){toast('Save failed: '+e.message,1)}});
    tr.append($('td',{},i2))});
   tr.append($('td',{},!canEdit(l)?'':$('button',{className:'x',title:'Delete row',textContent:'🗑',on:{click:async()=>{if(!confirm('Delete this row?'))return;try{await api({action:'delete',loc:l,id:r.id});loadAll()}catch(e){toast('Delete failed',1)}}}})));
-  return tr}))};
+  return tr};
+  tb.replaceChildren();let shown=0;
+  const step=()=>{const old=tb.querySelector('.mr');if(old)old.remove();const n=Math.min(arr.length,shown+PAGE);tb.append(...arr.slice(shown,n).map(mkRow));shown=n;
+   if(shown<arr.length){const tr=$('tr',{className:'mr'},$('td',{colSpan:F.length+2,style:'text-align:center;padding:10px'},$('button',{className:'btn alt',textContent:'Show more ('+(arr.length-shown)+' remaining)',on:{click:step}})));tb.append(tr);
+    ob&&ob.disconnect();if('IntersectionObserver' in window){ob=new IntersectionObserver(e=>{if(e[0].isIntersecting)step()},{rootMargin:'600px'});ob.observe(tr)}}};
+  step()};
  body();
  const hb=[];const paintS=()=>hb.forEach(([b,k,d])=>b.className='sb'+(SORT[l]&&SORT[l].k===k&&SORT[l].d===d?' on':''));
   const setS=(k,d)=>{SORT[l]=SORT[l]&&SORT[l].k===k&&SORT[l].d===d?null:{k,d};paintS();body()};
