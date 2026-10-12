@@ -115,7 +115,7 @@ body.out .warn{display:none}
 <script>
 /* ===== 3D OPERATIONS FLOOR (Summary tab) ===== */
 (function(){
-const LOCS=['4620','4621','4622','4623'],NAME={'4620':'DC','4621':'Hypermarket','4622':'Hypermarket','4623':'Hypermarket'};
+const LOCS=['4620','4621','4622','4623'],NAME={'4620':'DC','4621':'Ain Khalid','4622':'D-Ring','4623':'Muaither'};
 const CC={done:0x1a7f4b,g:0xe5384f,m:0xe6a100,o:0x8a94a3},CAP=36;
 let W=null;
 const isDark=()=>{const t=document.documentElement.dataset.theme;return t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)};
@@ -155,22 +155,52 @@ function build(){
  function flag(x,y,z){cyl(.08,.1,5,0xdfe4e8,x,y+2.5,z);const c=document.createElement('canvas');c.width=256;c.height=150;const q=c.getContext('2d');q.fillStyle='#8d1b3d';q.fillRect(0,0,256,150);q.fillStyle='#fff';q.beginPath();q.moveTo(0,0);q.lineTo(70,0);for(let i=0;i<9;i++){q.lineTo(i%2?70:100,(i+1)*150/9)}q.lineTo(0,150);q.fill();
   const f=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),side:2}));f.position.set(x+1.35,y+4.2,z);S.add(f);flags.push(f)}
  const B={};
- // ===== DC 4620: steel barrel-vault warehouse =====
- B['4620']={x:0,z:12,h:13};
- const hub=box(22,4.4,11,0xd6dde3,0,2.2,12);hub.userData.loc='4620';
- const vault=new THREE.Mesh(new THREE.CylinderGeometry(5.5,5.5,22,28),M(0x93a7ba));vault.rotation.z=Math.PI/2;vault.position.set(0,4.4,12);vault.castShadow=true;vault.userData.loc='4620';S.add(vault);
- for(let k=-4;k<=4;k++){const rb=new THREE.Mesh(new THREE.TorusGeometry(5.52,.09,6,28,Math.PI),M(0x5c6f82));rb.rotation.y=Math.PI/2;rb.position.set(k*2.4,4.4,12);S.add(rb)}
- [-5,0,5].forEach(x=>{box(4,3.9,.2,0xc9ced3,x,1.95,6.45);box(3.3,3.4,.25,0x37424c,x,1.7,6.5);for(let k=0;k<4;k++)box(3.3,.08,.28,0x5b6a77,x,.7+k*.8,6.52,null,false);box(4.2,.25,1.8,RED,x,3.95,5.6)});
- box(8,4.4,6,0xf1ece2,-16,2.2,20.5);box(8.4,.4,6.4,0x8d1b3d,-16,4.6,20.5);box(7,1.5,.1,0x5aa0c8,-16,2.6,17.45,null,false);box(1.6,2.3,.1,0x37424c,-16,1.15,17.45,null,false);
- box(1.4,7,.7,RED,-13,3.5,1.5);const dsn=sign('4620 DC','Distribution Center',4.6,2.3,'#c8102e');dsn.position.set(-13,5.6,1.9);S.add(dsn);
+ // ===== DC 4620: blue corrugated-roof warehouse (reference style) =====
+ B['4620']={x:0,z:12,h:11.5};
+ const WB=0x2f66e6,WHT=0xeef3fc,DOORC=0x1b2a4a,SLAT=0xf3f6fb,SLAL=0xb7c3da,CART=[0xcf9f62,0xb98547,0xd9ae72],PAL=0x2f5fd0,BLUE=0x1d4ed8;
+ const rtex=(()=>{const c=document.createElement('canvas');c.width=64;c.height=64;const q=c.getContext('2d');q.fillStyle='#2455c9';q.fillRect(0,0,64,64);q.fillStyle='#3a72e6';q.fillRect(8,0,40,64);q.fillStyle='#6a9bf8';q.fillRect(26,0,6,64);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(24,1);return t})();
+ const roofM=new THREE.MeshStandardMaterial({map:rtex,roughness:.55,metalness:.1});
+ function prism(pts,len,c){const sh=new THREE.Shape();pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));const g=new THREE.ExtrudeGeometry(sh,{depth:len,bevelEnabled:false});g.translate(0,0,-len/2);const m=new THREE.Mesh(g,M(c));m.rotation.y=-Math.PI/2;m.castShadow=true;m.receiveShadow=true;m.userData.loc='4620';S.add(m);return m}
+ function roofP(cz,y,L,a){const m=new THREE.Mesh(new THREE.BoxGeometry(22.8,.22,L),roofM);m.position.set(0,y,cz);m.rotation.x=a;m.castShadow=true;m.receiveShadow=true;m.userData.loc='4620';S.add(m);return m}
+ // stepped body: low front shed, tall middle hall, low rear shed
+ prism([[6.5,0],[9.5,0],[9.5,5.2],[6.5,4]],22,WB);
+ prism([[9.5,0],[14.5,0],[14.5,6.2],[12,7.9],[9.5,6.2]],22,WB);
+ prism([[14.5,0],[17.5,0],[17.5,4],[14.5,5.2]],22,WB);
+ roofP(7.75,4.62,3.68,-.3805);roofP(16.25,4.62,3.68,.3805);
+ roofP(10.55,7.04,3.37,-.5976);const rr=roofP(13.45,7.04,3.37,.5976);
+ box(22.8,.2,.5,WHT,0,8.08,12);
+ [[0,3.9,6.02],[0,3.9,17.98],[0,6.05,9.15],[0,6.05,14.85]].forEach(t=>box(22.8,.3,.15,WHT,t[0],t[1],t[2],null,false));
+ // round logo badge on the rear roof slope
+ const embT=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const q=c.getContext('2d');q.fillStyle='#fff';q.beginPath();q.arc(128,128,126,0,6.283);q.fill();
+  const cx=128,cy=98,r=54,k=.866*r;const poly=(pts,col)=>{q.fillStyle=col;q.beginPath();pts.forEach((p,i)=>i?q.lineTo(p[0],p[1]):q.moveTo(p[0],p[1]));q.closePath();q.fill()};
+  poly([[cx,cy-r],[cx+k,cy-r/2],[cx,cy],[cx-k,cy-r/2]],'#8fb4fa');poly([[cx-k,cy-r/2],[cx,cy],[cx,cy+r],[cx-k,cy+r/2]],'#2f66e6');poly([[cx+k,cy-r/2],[cx,cy],[cx,cy+r],[cx+k,cy+r/2]],'#1d48b8');
+  q.fillStyle='#1d48b8';q.font='bold 46px system-ui,Arial,sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText('4620 DC',128,204);return new THREE.CanvasTexture(c)})();
+ const emb=new THREE.Mesh(new THREE.CircleGeometry(1.7,40),new THREE.MeshBasicMaterial({map:embT}));emb.rotation.x=-Math.PI/2;emb.position.set(3.5,.14,.1);rr.add(emb);
+ // dock doors on both long sides (white frame, dark opening, roll-up shutter)
+ function dock(x,zf,dir,H,aw){box(4.3,3.6,.3,WHT,x,1.8,zf+dir*.1,null,false);box(3.5,3.1,.2,DOORC,x,1.55,zf+dir*.2,null,false);box(3.5,H,.26,SLAT,x,3.1-H/2,zf+dir*.27,null,false);
+  for(let k=1;k*.36<H;k++)box(3.5,.05,.3,SLAL,x,3.1-k*.36,zf+dir*.29,null,false);
+  if(H<3)[-.8,.8].forEach((o,i)=>box(.8,.7,.8,CART[i],x+o,.4,zf+dir*.5));
+  if(aw)box(4.4,.25,1.8,BLUE,x,3.7,zf+dir*.9)}
+ [-5,0,5].forEach((x,i)=>{dock(x,6.5,-1,[3.1,1.2,2][i],true);dock(x,17.5,1,[1.2,3.1,2][i],false)});
+ // pallets of cartons + floating blue location pins
+ function pallet(x,z,rot,n){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;box(1.5,.16,1.5,PAL,0,.08,0,g);for(let i=0;i<4;i++){const a=(i%2-.5)*.7,b=(Math.floor(i/2)-.5)*.7;box(.66,.55,.66,CART[i%3],a,.44,b,g);if(i<n)box(.62,.5,.62,CART[(i+1)%3],a,.97,b,g)}S.add(g)}
+ const pins=[];
+ function pin(x,z,y0){const g=new THREE.Group(),m=M(0x2563eb);const c=new THREE.Mesh(new THREE.ConeGeometry(.5,1.1,16),m);c.rotation.x=Math.PI;c.position.y=-.25;g.add(c);const s=new THREE.Mesh(new THREE.SphereGeometry(.55,16,12),m);s.position.y=.4;g.add(s);sph(.2,0xffffff,0,.4,.5,g,true);g.position.set(x,y0,z);g.userData.y0=y0;S.add(g);pins.push(g)}
+ pallet(-10.2,19.3,.2,3);pallet(10.2,19.3,-.2,4);pallet(-2.5,4.8,0,2);pallet(2.5,4.8,.3,3);
+ pin(-10.2,19.3,3.1);pin(10.2,19.3,3.3);pin(-2.5,4.8,2.9);
+ // roof vents
+ [-7,-3.5,0].forEach(x=>{cyl(.35,.35,.6,WHT,x,8.4,12);cyl(.52,.36,.12,SLAL,x,8.76,12)});
+ // office annex + pylon sign in the same white/blue scheme
+ box(8,4.4,6,0xf1f5fc,-16,2.2,20.5);box(8.4,.4,6.4,WB,-16,4.6,20.5);box(7,1.5,.1,0x5aa0c8,-16,2.6,17.45,null,false);box(1.6,2.3,.1,0x37424c,-16,1.15,17.45,null,false);
+ box(1.4,7,.7,BLUE,-13,3.5,1.5);const dsn=sign('4620 DC','Distribution Center',4.6,2.3,'#1d4ed8');dsn.position.set(-13,5.6,1.9);S.add(dsn);
  box(30,.05,8,0x7b868f,0,.02,3.4,null,false);box(34,.05,7,0x7b868f,0,.02,25,null,false);
- const bcn=new THREE.Group();bcn.position.set(9.5,10.3,12);S.add(bcn);box(.9,.5,.9,0xe6a100,0,0,0,bcn);const bar=box(2.4,.12,.3,0xfff1c2,0,.45,0,bcn,false);
- flag(-10,6.3,6.9);flag(10,6.3,6.9);
+ const bcn=new THREE.Group();bcn.position.set(9.5,8.55,12);S.add(bcn);box(.9,.5,.9,0xe6a100,0,0,0,bcn);const bar=box(2.4,.12,.3,0xfff1c2,0,.45,0,bcn,false);
+ flag(-10,4.4,6.9);flag(10,4.4,6.9);
  // ===== hypermarkets, far apart, roads with turns =====
  const SH={'4621':{x:-68,z:-16,rt:Rt([[-5,3.4],[-5,-1],[-40,-1],[-40,-7],[-68,-7]])},'4622':{x:10,z:-60,rt:Rt([[0,3.4],[0,-30],[24,-30],[24,-51],[10,-51]])},'4623':{x:72,z:-18,rt:Rt([[5,3.4],[5,-4],[45,-4],[45,-9],[72,-9]])}};
  Object.keys(SH).forEach(l=>{const s=SH[l],X=s.x,Z=s.z;B[l]={x:X,z:Z,h:10};
   const b=box(15,5.2,8,0xf6f1e6,X,2.6,Z);b.userData.loc=l;box(15.8,.5,8.8,RED,X,5.45,Z);box(15.6,2,.4,RED,X,6.4,Z+4);
-  const sn=sign(l+' Hypermarket','Mark & Save',11.5,1.8,'#c8102e');sn.position.set(X,6.4,Z+4.22);S.add(sn);
+  const sn=sign(l+' '+NAME[l],'Mark & Save',11.5,1.8,'#c8102e');sn.position.set(X,6.4,Z+4.22);S.add(sn);
   for(let k=0;k<8;k++){const a=box(15/8,.18,2.6,k%2?0xffffff:RED,X-7.5+15/16+k*15/8,3.9,Z+5.3);a.rotation.x=.3}
   box(3,3,.12,0x37424c,X,1.5,Z+4.06,null,false);[-5.2,5.2].forEach(x=>box(4.6,2.4,.12,0x7fb7d6,X+x,1.7,Z+4.06,null,false));
   [-6.8,6.8].forEach(x=>{cyl(.35,.28,.6,0xb5651d,X+x,.3,Z+4.8);sph(.55,0x3e9a4a,X+x,.95,Z+4.8)});
@@ -252,7 +282,7 @@ function build(){
  const pcol=[0xf4f4f4,0x2f6fb5,0x8d1b3d];Object.keys(SH).forEach(l=>{const q=SH[l];for(let i=0;i<7;i++){const v=mkVeh(i%3===1?'taxi':'suv',pcol[i%3]);v.g.position.set(q.x-9+i*3,0,q.z+16.8);v.g.rotation.y=Math.PI}});
  const chips=root.querySelector('#whs'),pn=root.querySelector('#whpn');let sel=null,ft=V(0,0,-14),fr=135,fa=0;
  const ring=new THREE.Mesh(new THREE.RingGeometry(9,10,40),new THREE.MeshBasicMaterial({color:0xe5384f,side:2}));ring.rotation.x=-Math.PI/2;ring.visible=false;S.add(ring);
- [['all','All'],['4620','4620 DC'],['4621','4621 Hypermarket'],['4622','4622 Hypermarket'],['4623','4623 Hypermarket']].forEach(([k,t])=>{const b=document.createElement('button');b.className='tab'+(k==='all'?' on':'');b.textContent=t;b.dataset.k=k;b.onclick=()=>pickLoc(k==='all'?null:k);chips.appendChild(b)});
+ [['all','All'],['4620','4620 DC'],['4621','4621 Ain Khalid'],['4622','4622 D-Ring'],['4623','4623 Muaither']].forEach(([k,t])=>{const b=document.createElement('button');b.className='tab'+(k==='all'?' on':'');b.textContent=t;b.dataset.k=k;b.onclick=()=>pickLoc(k==='all'?null:k);chips.appendChild(b)});
  function pickLoc(l){sel=l;chips.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===(l||'all')));ring.visible=!!l;if(l){const b=B[l];ring.position.set(b.x,.15,b.z);ring.scale.setScalar(1.5);ft=V(b.x,0,b.z+(l==='4620'?2:6));fr=l==='4620'?62:58}else{ft=V(0,0,-14);fr=135}fa=1.5;panel()}
  function panel(){if(!sel){pn.hidden=true;return}
   const rs=(rows[sel]||[]).filter(hasV),today=ymd(new Date()),dd=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)},days=[];
@@ -260,7 +290,7 @@ function build(){
   const gp=rs.filter(r=>r.migo==='Pending'),mp=rs.filter(r=>r.miro==='Pending'),dn=rs.filter(r=>PROC.every(([k])=>okS(r[k]))),
    old=gp.filter(r=>r.date).map(r=>Math.round((new Date(today+'T00:00:00')-new Date(r.date+'T00:00:00'))/864e5)),mx=Math.max(1,...days.map(d=>d.n)),
    bars=days.map((d,i)=>{const h=d.n*70/mx,hg=d.g*70/mx;return '<rect x="'+(i*18+2)+'" y="'+(80-h)+'" width="14" height="'+h+'" fill="#3b82f6"><title>'+d.k+': '+d.n+' entries, '+d.g+' GRN pending</title></rect><rect x="'+(i*18+2)+'" y="'+(80-hg)+'" width="14" height="'+hg+'" fill="#e5384f"/>'}).join('');
-  pn.hidden=false;pn.innerHTML='<div class="pt"><b>'+sel+' '+(sel==='4620'?'Distribution Center':'Hypermarket')+'</b><button class="x" id="whx" aria-label="Close">×</button></div><div class="pk">'+[['Entries today',days[13].n],['Yesterday',days[12].n],['Last 7 days',days.slice(7).reduce((a,d)=>a+d.n,0)],['All entries',rs.length],['GRN pending',gp.length],['MIRO pending',mp.length],['Completed',pc(dn.length,rs.length)+'%'],['Oldest GRN pending',old.length?Math.max(...old)+' days':'none']].map(([a,b])=>'<div><b>'+b+'</b><span>'+a+'</span></div>').join('')+'</div><div class="ps">Entries per day, last 14 days (red = GRN still pending)</div><svg viewBox="0 0 252 84" width="100%">'+bars+'</svg><div class="ps">On duty: '+(sel==='4620'?wkN+' staff, '+forks.length+' forklifts':'7 people on site (staff and shoppers)')+'</div><button class="btn alt" id="whf" style="margin-top:6px">Filter summary to '+sel+'</button>';
+  pn.hidden=false;pn.innerHTML='<div class="pt"><b>'+sel+' '+(sel==='4620'?'Distribution Center':NAME[sel])+'</b><button class="x" id="whx" aria-label="Close">×</button></div><div class="pk">'+[['Entries today',days[13].n],['Yesterday',days[12].n],['Last 7 days',days.slice(7).reduce((a,d)=>a+d.n,0)],['All entries',rs.length],['GRN pending',gp.length],['MIRO pending',mp.length],['Completed',pc(dn.length,rs.length)+'%'],['Oldest GRN pending',old.length?Math.max(...old)+' days':'none']].map(([a,b])=>'<div><b>'+b+'</b><span>'+a+'</span></div>').join('')+'</div><div class="ps">Entries per day, last 14 days (red = GRN still pending)</div><svg viewBox="0 0 252 84" width="100%">'+bars+'</svg><div class="ps">On duty: '+(sel==='4620'?wkN+' staff, '+forks.length+' forklifts':'7 people on site (staff and shoppers)')+'</div><button class="btn alt" id="whf" style="margin-top:6px">Filter summary to '+sel+'</button>';
   pn.querySelector('#whx').onclick=()=>pickLoc(null);pn.querySelector('#whf').onclick=()=>{const q=document.querySelector('#main select');if(q){q.value=sel;if(q.onchange)q.onchange()}}}
  let st={},tw={},paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const pick=l=>{const a=tw[l]||[0,0,0,0],n=a[0]+a[1]+a[2]+a[3];if(!n)return CC.o;let r=Math.random()*n;const k=['g','m','done','o'];for(let i=0;i<4;i++){if((r-=a[i])<0)return CC[k[i]]}return CC.o};
@@ -309,7 +339,7 @@ function build(){
  // animation
  const ang=a=>((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
  const showCr=(v,pk)=>v.cr.forEach(m=>{m.visible=true;m.material=M(pk())});
- function anim(dt){bcn.rotation.y+=dt*3;T+=dt;flags.forEach((f,i)=>f.rotation.y=Math.sin(T*2.2+i)*.25);
+ function anim(dt){bcn.rotation.y+=dt*3;T+=dt;pins.forEach((p,i)=>p.position.y=p.userData.y0+Math.sin(T*2.2+i*1.7)*.25);flags.forEach((f,i)=>f.rotation.y=Math.sin(T*2.2+i)*.25);
   wk.forEach(w=>{w.on=!w.dc||w.i<wkN;w.g.visible=w.on&&!(w.hide&&w.ph===0);if(!w.on)return;let mv=0;
    if(w.ph===0||w.ph===2){w.t+=dt;if(w.t>w.dw){w.ph=w.ph===0?1:3;w.t=0;w.bx.visible=w.bag&&w.ph===1}}
    else if(w.ph===1){w.u+=w.sp*dt;mv=1;if(w.u>=w.len){w.u=w.len;w.ph=2;w.t=0;w.bx.visible=false}}
