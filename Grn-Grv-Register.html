@@ -691,13 +691,13 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SYNC&&aut
 function tabs(){const b=document.getElementById('tabs');b.replaceChildren(
  ...(isAcc()?[]:[$('button',{className:'tab'+(page==='entry'?' on':''),textContent:'➕ New Entry',on:{click:()=>{page='entry';go()}}})]),
  $('button',{className:'tab'+(page==='sum'?' on':''),textContent:'📊 Summary',on:{click:()=>{page='sum';go()}}}),...L.map(l=>$('button',{className:'tab'+(page===l?' on':''),on:{click:()=>{page=l;go()}}},l,$('small',{textContent:'('+rows[l].filter(hasV).length+')'}))),
- $('button',{className:'tab'+(page==='sugg'?' on':''),textContent:'💡 Suggestions',on:{click:()=>{page='sugg';go()}}}),$('span',{className:'sp'}),$('button',{className:'btn alt',textContent:'⬇ Export Excel (CSV)',on:{click:exportCsv}}),$('button',{className:'btn alt',textContent:'💾 Backup (Excel)',on:{click:backup}}),...(isAdmin()?[$('button',{className:'btn alt',textContent:'📂 Restore (Excel)',on:{click:restore}})]:[]),$('button',{className:'btn alt',textContent:'🔓 Log out ('+ulabel()+')',on:{click:logout}}))}
+ $('button',{className:'tab'+(page==='agent'?' on':''),textContent:'🤖 AI Agent',on:{click:()=>{page='agent';go()}}}),$('button',{className:'tab'+(page==='sugg'?' on':''),textContent:'💡 Suggestions',on:{click:()=>{page='sugg';go()}}}),$('span',{className:'sp'}),$('button',{className:'btn alt',textContent:'⬇ Export Excel (CSV)',on:{click:exportCsv}}),$('button',{className:'btn alt',textContent:'💾 Backup (Excel)',on:{click:backup}}),...(isAdmin()?[$('button',{className:'btn alt',textContent:'📂 Restore (Excel)',on:{click:restore}})]:[]),$('button',{className:'btn alt',textContent:'🔓 Log out ('+ulabel()+')',on:{click:logout}}))}
 const CACHE={};let DV=0;
 function go(){document.querySelectorAll('.sty-hd').forEach(x=>x.remove());if(isAcc()&&page==='entry')page='sum';tabs();const m=document.getElementById('main');
  let n;const c=CACHE[page];
  if(page!=='entry'&&c&&c.v===DV)n=c.n;
- else{n=page==='entry'?entry():page==='sum'?sum():page==='sugg'?sugg():reg(page);if(page!=='entry')CACHE[page]={v:DV,n}}
- m.replaceChildren(n);if(page==='sum'&&n._bar)sumShown(n)}
+ else{n=page==='entry'?entry():page==='sum'?sum():page==='sugg'?sugg():page==='agent'?agentPage():reg(page);if(page!=='entry'&&page!=='agent')CACHE[page]={v:DV,n}}
+ if(!(page==='agent'&&m.firstChild===n))m.replaceChildren(n);if(page==='agent'&&n._on)n._on();if(page==='sum'&&n._bar)sumShown(n)}
 function entry(){
  if(isAcc())return $('div',{className:'card'},$('p',{className:'mut',textContent:'Accounts login cannot add entries.'}));
  const v={},out=$('div',{className:'vn'}),locs=$('div',{className:'locs'});
@@ -981,11 +981,257 @@ function answer(c){
  if(pc(dn.length,N)>=90)ins.push('✅ Healthy: '+pc(dn.length,N)+'% done.');
  if(ins.length){h+='<div class="ag-s">💡 Insights</div><ul>'+ins.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>';t.push(...ins)}
  return{html:h,txt:t.join('\n'),after}}
+/* ---- smart agent extensions: perishable vendors, reasons, %, PO lookup, bulk edit, SL. No ---- */
+const PERI=[["10008137", "AL QUSAIMI MAKERS AND DIS", "Butchery"], ["10008317", "AZBA FOR CHICKEN FARM", "Butchery"], ["10007981", "SEA PEARL TRADING", "Butchery"], ["10008241", "HYAAM FOOD STUFF TRADING", "Butchery"], ["10006131", "AL DAWLIYA FOR MEAT", "Butchery"], ["10006053", "AL TAYEB INTERNATIONAL TR", "Butchery"], ["10006123", "AQWAT TRADING AND PROCESS", "Butchery"], ["10005667", "GULF CENTER FOR FOODSTUFF", "Butchery"], ["10005409", "LOCAL AND INTERNATIONAL F", "Butchery"], ["10008356", "NYS ENTERPRISES LTD", "Butchery"], ["10008200", "ALANAM FACTORY FOR ANIMAL", "Butchery"], ["10008361", "FISHTH AL DEEBUL", "Fish & Seafood"], ["10005693", "SILVER STAR MEAT AND FISH", "Fish & Seafood"], ["10006058", "ISMAIL C V TRADING W.L.L", "Fish & Seafood"], ["10006804", "OCEAN FOR FISH", "Fish & Seafood"], ["10008601", "AL JABALI TRADING AND REF", "Fruits & Vegetables"], ["10006282", "FEEL FRESH NEW TRADING", "Fruits & Vegetables"], ["10008695", "JOBAYER TRADING AND CONTR", "Fruits & Vegetables"], ["10008304", "NUSRAT N VEGETABLES", "Fruits & Vegetables"], ["10007028", "AL ZUBAIR TRADING FRUITS", "Fruits & Vegetables"], ["10007046", "ABUZAHER VEGETABLES & FRU", "Fruits & Vegetables"], ["10007056", "AHED AL SHAYER TRADING W.", "Fruits & Vegetables"], ["10008139", "AL TAHALUF TRADING FOR VE", "Fruits & Vegetables"], ["10008420", "ALAZKIYAA TRADING & SERVI", "Fruits & Vegetables"], ["10007422", "ARIGNI TRADING AND SERVIC", "Fruits & Vegetables"], ["10006963", "NEW HIMALAYAN TRADING FOR", "Fruits & Vegetables"], ["10007745", "ORGANIC HARVEST TRADING", "Fruits & Vegetables"], ["10008265", "AAK MIDDLE EAST TRADING", "Fruits & Vegetables"], ["10007301", "AL-NASEEB TRADING", "Fruits & Vegetables"], ["10006127", "AL JAYED AL ZAIN TRADING", "Fruits & Vegetables"], ["10006157", "AL RAWABI CO FOR COMMERCI", "Fruits & Vegetables"], ["10004306", "AL SAFA TRADING CENTER", "Fruits & Vegetables"], ["10006125", "ASIAN GREEN TRADING", "Fruits & Vegetables"], ["10006124", "HAPPY BANANA TRADING", "Fruits & Vegetables"], ["10006193", "K B EXPORT & IMPORT", "Fruits & Vegetables"], ["10007668", "LOCAL MARKET VENDOR(FRUIT", "Fruits & Vegetables"], ["10007389", "GREEN METRO FRUITS & VEGE", "Fruits & Vegetables"], ["10005657", "AIN KHALID VEGETABLES AND", "Fruits & Vegetables"], ["10008266", "WAHET AL - SHAFALAHIYA", "Fruits & Vegetables"]];
+const VCAT={},NCAT=[],PCATS=['Fruits & Vegetables','Fish & Seafood','Butchery'];
+PERI.forEach(([c,n,k])=>{VCAT[c]=k;NCAT.push([n.toUpperCase(),k])});
+const catOf=r=>{const c=String(r.vc||'').trim();if(VCAT[c])return VCAT[c];const n=String(vN(r)||'').toUpperCase();if(n.length<8)return '';const h=NCAT.find(([x])=>n===x||n.startsWith(x)||x.startsWith(n));return h?h[1]:''};
+const RSN=[['NOT RECEIVED BY ACCOUNTS',/not received|accounts? not|not recv/],['DEFICIT',/deficit|shortage/],['PRICE CHNAGE',/price/],['Wrong Seal',/wrong seal/],['No Seal',/no seal/],['Amount Mismatch',/mismatch/],['PO Change',/po change/],['PO QTY EDITING',/po qty|qty edit|quantity edit/],['PO IS NOT READY',/po (is )?not ready/],['Scanning Issue',/scanning issue/]];
+const AGS={cmd:null,plan:null};
+const remEq=(r,k)=>String(r.rem||'').trim().toUpperCase()===k.toUpperCase();
+const tblH=(hd,rows,num)=>'<div style="overflow-x:auto;margin:6px 0"><table style="min-width:0;width:100%;font-size:11.5px"><thead><tr>'+hd.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((x,i)=>'<td style="padding:4px 6px;'+((num||[]).includes(i)?'text-align:right':'')+'">'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+const kp=a=>'<div class="ag-k">'+a.map(([l,v,c])=>'<div style="--c:'+c+'"><b>'+v+'</b><small>'+l+'</small></div>').join('')+'</div>';
+const hdr=(c,extra)=>'<div class="ag-cr"><span>📍 '+esc(c.stores?c.stores.map(l=>l+' '+STN[l]).join(', '):'All 4 locations')+'</span><span>📅 '+esc(c.tl||'All dates')+'</span>'+(extra?'<span>'+esc(extra)+'</span>':'')+'</div>';
+const scope=(c,cats)=>allRows().filter(r=>(!c.stores||c.stores.includes(r.l))&&(!c.from||(r.date&&r.date>=c.from))&&(!c.to||(r.date&&r.date<=c.to))&&(!cats||cats.includes(catOf(r))));
+const catsIn=t=>{const a=[];if(/fruit|veg/.test(t))a.push(PCATS[0]);if(/fish|seafood|sea food/.test(t))a.push(PCATS[1]);if(/butcher|meat|chicken/.test(t))a.push(PCATS[2]);if(!a.length&&/perishable/.test(t))return PCATS.slice();return a.length?a:null};
+const cnt=(a,f)=>{const m={};a.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+1});return m};
+const lst=(rs,max,withRem)=>{const a=rs.slice().sort((x,y)=>(x.date||'9')<(y.date||'9')?-1:1);const hd=['Date','Loc','Vendor','PO No.','Invoice','Value'].concat(withRem?['Remark']:[]);
+ return tblH(hd,a.slice(0,max).map(r=>[esc(r.date||'-'),r.l,esc(vN(r)),esc(r.lpo||'-'),esc(r.inv||'-'),fmt(ivn(r))].concat(withRem?[esc(r.rem||'-')]:[])),[5])+(a.length>max?'<p class="mut">+ '+(a.length-max)+' more – narrow by store or date to see them.</p>':'')};
+const lstTxt=rs=>rs.slice().sort((x,y)=>(x.date||'9')<(y.date||'9')?-1:1).map(r=>[r.date||'-',r.l,vN(r),'PO '+(r.lpo||'-'),'inv '+(r.inv||'-'),fmt(ivn(r))].join(' | '));
+function dimTables(tg,t,c,hasCat){
+ const byLoc=/location|store|branch|shop|wise|each|compare/.test(t),byDate=/\bdate|daily|day wise|per day|by day/.test(t),byMon=/month wise|monthly|by month|per month/.test(t),byVend=/vendor|supplier/.test(t);
+ const locs=L.filter(l=>tg.some(r=>r.l===l)),out=[];let h='';
+ const mk=r=>r.date?r.date:'No date',mon=r=>r.date?r.date.slice(0,7):'No date';
+ if(byDate&&(byLoc||locs.length>1)){const ds=[...new Set(tg.map(mk))].sort(),show=ds.slice(-31);
+  h+='<div class="ag-s">Date wise × location wise</div>'+tblH(['Date',...locs,'Total'],show.map(d=>{const a=tg.filter(r=>mk(r)===d);return [d,...locs.map(l=>a.filter(r=>r.l===l).length||'-'),a.length]}).concat([['<b>Total</b>',...locs.map(l=>'<b>'+tg.filter(r=>r.l===l).length+'</b>'),'<b>'+tg.length+'</b>']]),[...locs.map((_,i)=>i+1),locs.length+1]);
+  if(ds.length>31)h+='<p class="mut">Showing the latest 31 dates of '+ds.length+'.</p>';out.push('Date × location: '+ds.length+' dates')}
+ else{
+  if(byLoc||(!byDate&&!byMon&&locs.length>1)){h+='<div class="ag-s">Location wise</div>'+tblH(['Location','Invoices','Value'],locs.map(l=>{const a=tg.filter(r=>r.l===l);return [l+' '+STN[l],a.length,fmt(sumV(a))]}),[1,2]);locs.forEach(l=>out.push(l+' '+STN[l]+': '+tg.filter(r=>r.l===l).length))}
+  if(byDate){const m=cnt(tg,mk),ds=Object.keys(m).sort();h+='<div class="ag-s">Date wise</div>'+tblH(['Date','Invoices','Value'],ds.slice(-31).map(d=>[d,m[d],fmt(sumV(tg.filter(r=>mk(r)===d)))]),[1,2]);out.push('By date: '+ds.length+' dates')}
+ }
+ if(byMon){const m=cnt(tg,mon),ds=Object.keys(m).sort();h+='<div class="ag-s">Month wise</div>'+tblH(['Month','Invoices','Value'],ds.map(d=>[d,m[d],fmt(sumV(tg.filter(r=>mon(r)===d)))]),[1,2])}
+ if(hasCat){const m=cnt(tg,catOf);h+='<div class="ag-s">Category wise</div>'+tblH(['Category','Invoices','Value'],Object.keys(m).sort((a,b)=>m[b]-m[a]).map(k=>[esc(k),m[k],fmt(sumV(tg.filter(r=>catOf(r)===k)))]),[1,2]);Object.keys(m).forEach(k=>out.push(k+': '+m[k]))}
+ if(byVend&&tg.length){const m=cnt(tg,vN),a=Object.keys(m).sort((x,y)=>m[y]-m[x]).slice(0,10);h+='<div class="ag-s">Top vendors</div>'+tblH(['Vendor','Invoices','Value'],a.map(k=>[esc(k),m[k],fmt(sumV(tg.filter(r=>vN(r)===k)))]),[1,2]);a.forEach(k=>out.push(k+': '+m[k]))}
+ return{h,out}}
+function qPerish(t,c,cats){
+ const wantDone=c.status==='Done',p=c.p||'all',base=scope(c,cats),tg=base.filter(r=>wantDone?isDone(r,p):isOpen(r,p)),lab=wantDone?'done':'pending';
+ let h=hdr(c,cats.join(' + ')+' · '+PN[p]);
+ if(!base.length)return{html:h+'<p>No invoices from perishable vendors found for this selection.</p>',c};
+ h+='<p><b>'+tg.length+'</b> of <b>'+base.length+'</b> perishable invoices are <b>'+lab+'</b> for '+PN[p]+' ('+pc(tg.length,base.length)+'%), value <b>'+fmt(sumV(tg))+'</b>.</p>';
+ const txt=['Perishable ('+cats.join(', ')+') '+lab+' – '+PN[p]+': '+tg.length+' of '+base.length+', value '+fmt(sumV(tg))];
+ const d=dimTables(tg,t,c,cats.length>1);h+=d.h;txt.push(...d.out);
+ if(tg.length&&(/list|detail|show|give|which/.test(t)||tg.length<=10)){h+='<div class="ag-s">Invoice details</div>'+lst(tg,25);txt.push(...lstTxt(tg).slice(0,60))}
+ else if(tg.length)h+='<p class="mut">Say “list” or “details” to see each invoice, or add “location wise”, “date wise”, “vendor wise”.</p>';
+ return{html:h,txt:txt.join('\n'),c}}
+function qPct(t,c,cats){
+ const rs=scope(c,cats);let h=hdr(c,(cats?cats.join(' + ')+' · ':'')+'Completion %');
+ if(!rs.length)return{html:h+'<p>No entries found for this selection.</p>',c};
+ const sel=[/grn|migo/.test(t)&&'migo',/forward|fwd/.test(t)&&'fwd',/scan/.test(t)&&'scan',/miro/.test(t)&&'miro'].filter(Boolean),ps=sel.length?PROC.filter(([k])=>sel.includes(k)):PROC,locs=L.filter(l=>rs.some(r=>r.l===l));
+ const cell=(a,k)=>{const d=a.filter(r=>r[k]==='Done').length;return '<b>'+pc(d,a.length)+'%</b> <small>('+d+'/'+a.length+')</small>'};
+ h+='<p>Total entries: <b>'+rs.length+'</b> – percentage = Done ÷ total entries.</p>'+tblH(['Process','All',...locs],ps.map(([k,n])=>[n,cell(rs,k),...locs.map(l=>cell(rs.filter(r=>r.l===l),k))]),[1,...locs.map((_,i)=>i+2)]);
+ h+='<div class="ag-s">Status counts (all selected locations)</div>'+tblH(['Process','Done','Pending','In Progress','N/A','Not set'],ps.map(([k,n])=>[n,...['Done','Pending','In Progress','N/A','Not set'].map(s=>rs.filter(r=>st(r[k])===s).length)]),[1,2,3,4,5]);
+ const txt=['Completion % – '+rs.length+' entries',...ps.map(([k,n])=>n+': '+pc(rs.filter(r=>r[k]==='Done').length,rs.length)+'% done')];
+ return{html:h,txt:txt.join('\n'),c}}
+function qReason(t,c,cats,rk){
+ const p=c.p&&!rk.includes('Scanning Issue')?c.p:'all',base=scope(c,cats).filter(r=>rk.some(k=>remEq(r,k))),op=base.filter(r=>isOpen(r,p)),rest=base.length-op.length;
+ const lab=rk.map(k=>RM.find(x=>x.toUpperCase()===k.toUpperCase())||k).join(' + ');
+ let h=hdr(c,lab+(p!=='all'?' · '+PN[p]:''));
+ if(!base.length)return{html:h+'<p>No entries carry the remark <b>'+esc(lab)+'</b> for this selection.</p>',c};
+ h+='<p><b>'+op.length+'</b> '+(p==='all'?'invoices':PN[p]+' entries')+' are still pending because of <b>'+esc(lab)+'</b>, value <b>'+fmt(sumV(op))+'</b>.'+(rest?' <span class="mut">('+rest+' more carry this remark but are already done.)</span>':'')+'</p>';
+ const txt=[lab+' – pending '+op.length+', value '+fmt(sumV(op))];
+ if(rk.length>1){const m=cnt(op,r=>String(r.rem).trim().toUpperCase());h+=tblH(['Reason','Pending'],Object.keys(m).map(k=>[esc(RM.find(x=>x.toUpperCase()===k)||k),m[k]]),[1])}
+ const d=dimTables(op,/location|store|wise|each/.test(t)?t:t+' location',c,false);h+=d.h;txt.push(...d.out);
+ const notRec=rk.includes('NOT RECEIVED BY ACCOUNTS'),big=notRec||/list|detail|show|give|which/.test(t);
+ if(op.length&&(big||op.length<=10)){h+='<div class="ag-s">Details (date · vendor · PO · value)</div>'+lst(op,big?60:15,rk.length>1);txt.push(...lstTxt(op).slice(0,80))}
+ return{html:h,txt:txt.join('\n'),c}}
+function qPO(t){
+ const nums=t.match(/\b\d{6,}\b/g);if(!nums)return null;const A=allRows(),hits=[];
+ nums.forEach(n=>A.forEach(r=>{const lp=String(r.lpo||'').trim();if(lp&&(lp===n||lp.includes(n))&&!hits.includes(r))hits.push(r)}));
+ if(!hits.length){if(nums.every(n=>VEND[n]||VCAT[n]))return null;return{html:'No entry with PO number <b>'+esc(nums.join(', '))+'</b> was found in any location.'}}
+ const row=(a,b)=>'<tr><td style="padding:3px 6px;color:var(--mut)">'+a+'</td><td style="padding:3px 6px"><b>'+b+'</b></td></tr>';
+ const h=hits.slice(0,10).map(r=>'<div class="ag-s">PO '+esc(r.lpo)+' · '+r.l+' '+STN[r.l]+'</div><table style="min-width:0;width:100%;font-size:12px">'+row('Date',esc(r.date||'-'))+row('Vendor',esc(vN(r)))+row('Invoice',esc(r.inv||'-'))+row('Value',fmt(ivn(r)))+row('GRN (MIGO)',esc(r.migo||'-'))+row('Forward to Accounts',esc(r.fwd||'-'))+row('Invoice scanning',esc(r.scan||'-'))+row('MIRO',esc(r.miro||'-'))+row('Remark',esc(r.rem||'-'))+'</table>').join('');
+ return{html:h+(hits.length>10?'<p class="mut">+ '+(hits.length-10)+' more matches.</p>':''),txt:hits.map(r=>[r.date||'-',r.l,vN(r),'PO '+r.lpo,fmt(ivn(r)),'MIGO '+(r.migo||'-'),'MIRO '+(r.miro||'-'),r.rem||''].join(' | ')).join('\n')}}
+/* ---- bulk edit ---- */
+const normV=s=>{s=String(s==null?'':s).trim().toLowerCase().replace(/^["'“]|["'”]$/g,'').replace(/\s+/g,' ');if(/^#?n\/?a$/.test(s))return 'N/A';if(s==='inprogress')s='in progress';return [...ST,...RM].find(x=>x&&x.toLowerCase()===s)||null};
+const sheetsIn=t=>{const s=new Set();(t.match(/\b46(?:20|21|22|23)\b/g)||[]).forEach(x=>s.add(x));[[/warehouse|\bdc\b/,'4620'],[/ain khalid|khalid/,'4621'],[/d-ring|d ring|dring/,'4622'],[/muaither/,'4623']].forEach(([r,l])=>{if(r.test(t))s.add(l)});if(/all (the )?(sheets?|tabs?|locations?|stores?)|every (sheet|tab|location)|all four|all 4|\ball\b\s*$/.test(t))L.forEach(l=>s.add(l));return L.filter(l=>s.has(l))};
+function parseEdit(t){
+ const m=t.match(/\b(?:replace|change|convert|update)\s+(?:all\s+|the\s+|every\s+)*(.+?)\s+(?:with|to|as|into)\s+(.+)$/);if(!m)return null;
+ const cl=s=>s.replace(/\s+(?:in|on|from|of|for|at)\s+.*$/,'').replace(/\b46\d\d\b|\b(?:sheets?|tabs?|dc|warehouse|muaither|d-ring|d ring|ain khalid|khalid)\b/g,' ').replace(/\b(grn|migo|miro|scan(?:ning)?|forward|fwd|invoice|status|statuses|remarks?|cells?|entries|values?)\b/g,' ').replace(/\s+/g,' ').trim();
+ const A=normV(cl(m[1])),B=normV(cl(m[2]));if(!A||!B||A===B)return null;
+ const isSt=ST.includes(A)&&ST.includes(B),isRm=RM.includes(A)&&RM.includes(B);if(!isSt&&!isRm)return null;
+ let fields=['rem'];if(isSt){fields=[];if(/grn|migo/.test(t))fields.push('migo');if(/forward|fwd/.test(t))fields.push('fwd');if(/scan/.test(t))fields.push('scan');if(/miro/.test(t))fields.push('miro');if(!fields.length)fields=PROC.map(x=>x[0])}
+ return{A,B,fields,sheets:sheetsIn(t)}}
+const FN={migo:'GRN (MIGO)',fwd:'Forward to Accounts',scan:'Invoice scanning',miro:'MIRO',rem:'Remarks'};
+function planEdit(){
+ const cm=AGS.cmd,o=store(),jobs=[];let skip=0;const per={};
+ cm.sheets.forEach(l=>(o[l]||[]).forEach(r=>{if(r.id==null||!hasV(r))return;const data={};cm.fields.forEach(k=>{if(normV(r[k])===cm.A){if(canField(l,k))data[k]=cm.B;else skip++}});if(Object.keys(data).length){jobs.push({l,id:r.id,data});per[l]=(per[l]||0)+Object.keys(data).length}}));
+ AGS.plan={jobs};const cells=jobs.reduce((t,j)=>t+Object.keys(j.data).length,0);
+ let h='<p>Sheet'+(cm.sheets.length>1?'s':'')+': <b>'+cm.sheets.map(l=>l+' '+STN[l]).join(', ')+'</b><br>Replace <b>'+esc(cm.A)+'</b> → <b>'+esc(cm.B)+'</b> in: '+cm.fields.map(k=>FN[k]).join(', ')+'</p>';
+ if(!cells){AGS.plan=null;AGS.cmd=null;return{html:h+'<p>Nothing to change – no matching <b>'+esc(cm.A)+'</b> cells found'+(skip?' that you are allowed to edit ('+skip+' locked for your login)':'')+'.</p>'}}
+ h+=tblH(['Sheet','Cells to change'],Object.keys(per).map(l=>[l+' '+STN[l],per[l]]),[1])+'<p><b>'+cells+'</b> cells will be changed in the sheet'+(SYNC?' (Google Sheet, so the Summary updates automatically)':'')+'.'+(skip?' '+skip+' cells skipped – your login cannot edit them.':'')+'</p>'+(SYNC&&jobs.length>40?'<p class="mut">This sends '+jobs.length+' updates, so it may take a minute.</p>':'')+'<p><button type="button" class="btn" data-ag="ok" style="padding:5px 14px">✅ Yes, change them</button> <button type="button" class="btn alt" data-ag="no" style="padding:5px 14px">Cancel</button></p>';
+ return{html:h}}
+const SLBTN=()=>'<div class="ag-fu">'+L.map(l=>'<button type="button" data-q="fix sl no in '+l+'">'+l+' '+STN[l]+'</button>').join('')+'<button type="button" data-q="fix sl no in all sheets">All sheets</button></div>';
+function askSL(){AGS.cmd={sl:true};AGS.plan=null;return{html:'<p>Sure – I will number <b>SL. No.</b> as 1, 2, 3… <b>Which sheet?</b> Tap one, or type <b>4620 4621</b> / “all sheets”.</p>'+SLBTN()}}
+function planSL(sheets){
+ const o=store(),jobs=[],per={};sheets=sheets&&sheets.length?sheets:L.slice();
+ sheets.forEach(l=>{const a=o[l]||[];const slk=Object.keys(a.find(r=>Object.keys(r).some(k=>/^(sl|s\.?l|serial)/i.test(k)))||{}).find(k=>/^(sl|s\.?l|serial)/i.test(k));
+  a.forEach((r,i)=>{if(r.id==null)return;const cur=slk?String(r[slk]==null?'':r[slk]).trim():'';if(cur!==String(i+1)&&canField(l,'sl')){jobs.push({l,id:r.id,data:{sl:i+1}});per[l]=(per[l]||0)+1}})});
+ AGS.cmd=null;AGS.plan={jobs,kind:'sl',locs:sheets};
+ if(!jobs.length){AGS.plan=null;return{html:'<p>SL. No. looks already 1, 2, 3… in order on '+sheets.join(', ')+'. ✅</p>'}}
+ return{html:'<p>Number <b>SL. No.</b> as 1, 2, 3… on: <b>'+sheets.map(l=>l+' '+STN[l]).join(', ')+'</b></p>'+tblH(['Sheet','Rows'],sheets.map(l=>[l+' '+STN[l],per[l]||0]),[1])+'<p class="mut">Fast mode writes each whole sheet in one call (needs the small Code.gs addition). Without it, I fall back to row-by-row updates (8 at a time).</p><p><button type="button" class="btn" data-ag="ok" style="padding:5px 14px">✅ Yes, number them</button> <button type="button" class="btn alt" data-ag="no" style="padding:5px 14px">Cancel</button></p>'}}
+const AGX={cancel(){AGS.plan=null;AGS.cmd=null},
+ async run(prog){const pl=AGS.plan;if(!pl)return '<p>Nothing pending.</p>';AGS.plan=null;AGS.cmd=null;let bad=0,fast=[];const errs=new Set(),okj=[];let jobs=pl.jobs.slice();
+  if(pl.kind==='sl'&&SYNC){const rest=[];for(const l of pl.locs){try{prog&&prog(0,0,'Numbering '+l+'…');await apiCall({action:'renumber',loc:l});fast.push(l)}catch(e){rest.push(l)}}jobs=jobs.filter(j=>rest.includes(j.l))}
+  const q=jobs.slice(),n=jobs.length,wk=async()=>{while(q.length){const j=q.shift();try{await api({action:'update',loc:j.l,id:j.id,data:j.data});okj.push(j)}catch(e){bad++;errs.add(e.message)}prog&&prog(okj.length+bad,n)}};
+  await Promise.all([wk(),wk(),wk(),wk(),wk(),wk(),wk(),wk()]);
+  const o=store();pl.jobs.forEach(j=>{if(fast.includes(j.l)||okj.includes(j)){const r=(o[j.l]||[]).find(x=>x.id===j.id);if(r)Object.assign(r,j.data)}});persist(o);paintAll();
+  return '<p>✅ '+(fast.length?'Fast mode: <b>'+fast.join(', ')+'</b> numbered in one call each. ':'')+(n?'<b>'+okj.length+'</b> of '+n+' row updates saved.':'')+(bad?' ⚠ <b>'+bad+'</b> failed: '+esc([...errs].slice(0,2).join('; '))+'.':'')+'</p>'}};
+function SMART(txt,prev){
+ const t=' '+txt.toLowerCase().replace(/[?!,]/g,' ').replace(/\s+/g,' ')+' ';
+ if(AGS.cmd&&!AGS.plan&&!parseEdit(t)){if(/\b(cancel|stop|never ?mind)\b/.test(t)){AGS.cmd=null;return{html:'Okay, cancelled – nothing was changed.'}}const sh=sheetsIn(t);if(sh.length){if(AGS.cmd.sl)return planSL(sh);AGS.cmd.sheets=sh;return planEdit()}}
+ const ed=parseEdit(t);
+ if(ed){AGS.cmd=ed;AGS.plan=null;if(!ed.sheets.length)return{html:'Sure – replace <b>'+esc(ed.A)+'</b> with <b>'+esc(ed.B)+'</b> ('+ed.fields.map(k=>FN[k]).join(', ')+').<br><b>Which sheet?</b> Tell me one or more: <b>4620</b> DC, <b>4621</b> Ain Khalid, <b>4622</b> D-Ring, <b>4623</b> Muaither – or “all sheets”.'};return planEdit()}
+ if(/\b(sl\.? ?no|sl\. no|serial)\b/.test(t)&&/fix|correct|add|make|number|missing|fill|renumber|arrange|order/.test(t)){const sh=sheetsIn(t);return sh.length?planSL(sh):askSL()}
+ const po=qPO(t);if(po){po.k='po';return po}
+ const c=parseQ(txt,prev);let cats=catsIn(t);
+ const rk=RSN.filter(([k,r])=>r.test(t)).map(a=>a[0]);if(/\bseal\b/.test(t)&&!rk.includes('Wrong Seal')&&!rk.includes('No Seal'))rk.push('Wrong Seal','No Seal');
+ const ref=/\b(this|that|same|these|those)\b/.test(t);
+ if(ref&&prev){c.stores=c.stores||prev.stores;c.p=c.p||prev.p;c.status=c.status||prev.status;if(!c.from&&!c.to){c.from=prev.from;c.to=prev.to;c.tl=prev.tl}}
+ if(ref&&AGS.last){if(!cats)cats=AGS.last.cats;if(!rk.length)rk.push(...AGS.last.rk)}
+ const isCh=/\b(graph|chart|plot|graphical|graphically|visuali[sz]e|visuali[sz]ation|pie|histogram|diagram)\b|\b[xy][ -]?axis/.test(t);
+ let r=null,kd='';
+ if(isCh){r=qChart(t,c,cats,rk);kd='chart'}
+ else if(rk.length){r=qReason(t,c,cats,rk);kd='reason'}
+ else if(/percent|percentage|%/.test(t)){r=qPct(t,c,cats);kd='pct'}
+ else if(cats){r=qPerish(t,c,cats);kd='perish'}
+ if(r){AGS.last={cats,rk:rk.slice()};r.k=kd}
+ return r}
+
+/* ---- custom charts (x axis / y axis chosen by the user) ---- */
+const PAL=['#3b82f6','#e5384f','#1a7f4b','#f59e0b','#8b5cf6','#14b8a6','#ec4899','#64748b','#0ea5e9','#84cc16'];
+const nm=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(1)+'M':Math.abs(n)>=1e4?(n/1e3).toFixed(1)+'k':String(Math.round(n*100)/100);
+const nice=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),m=v/p;return(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
+const cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
+const DIMS=[['process',/\bprocess|\bstage|\bstep/],['date',/\bdates?\b|\bdays?\b|daily/],['week',/\bweek/],['month',/month/],['loc',/location|store|branch|sheet|shop|warehouse|outlet/],['vendor',/vendor|supplier/],['cat',/categor|perishable type|perishable group/],['reason',/reason|remark|cause|issue/],['rcv',/receiver|sap id/],['migo',/(grn|migo)[a-z ]* status|status of (grn|migo)/],['miro',/miro[a-z ]* status|status of miro/],['scan',/scan[a-z ]* status|status of scan/],['fwd',/(forward|fwd)[a-z ]* status|status of (forward|fwd)/]];
+const DN={process:'Process',date:'Date',week:'Week (starting)',month:'Month',loc:'Location',vendor:'Vendor',cat:'Category',reason:'Reason (Remarks)',rcv:'Receiver SAP ID',migo:'GRN (MIGO) status',miro:'MIRO status',scan:'Scanning status',fwd:'Forward to Accounts status'};
+const dimIn=s=>{let b=null,bi=1e9;DIMS.forEach(([k,r])=>{const m=String(s||'').match(r);if(m&&m.index<bi){bi=m.index;b=k}});return b};
+function keyOf(r,d){switch(d){case 'date':return r.date||'No date';case 'week':{if(!r.date)return 'No date';const x=new Date(r.date+'T00:00:00');x.setDate(x.getDate()-x.getDay());return ymd(x)}case 'month':return r.date?r.date.slice(0,7):'No date';case 'loc':return r.l+' '+STN[r.l];case 'vendor':return vN(r);case 'cat':return catOf(r)||'Other (non-perishable)';case 'reason':return String(r.rem||'').trim()||'No remark';case 'rcv':return String(r.rcv||'').trim()||'-';default:return st(r[d])}}
+function drawChart(o){
+ const W=720,{type,cats,series}=o,S=series.length,N=cats.length,TX='style="fill:var(--tx)"',MU='style="fill:var(--mut)"';let s='';
+ if(type==='pie'){const v=series[0].vals,tot=v.reduce((a,b)=>a+b,0)||1;let a0=-Math.PI/2;s='<svg viewBox="0 0 '+W+' 300" class="ag-svg">';
+  v.forEach((x,i)=>{const fr=x/tot,a1=a0+fr*2*Math.PI,c=PAL[i%PAL.length];
+   if(fr>=.9999)s+='<circle cx="170" cy="150" r="120" fill="'+c+'"><title>'+esc(cats[i])+': '+nm(x)+' (100%)</title></circle>';
+   else if(x>0){const X=(r,a)=>(170+r*Math.cos(a)).toFixed(1),Y=(r,a)=>(150+r*Math.sin(a)).toFixed(1);s+='<path d="M170 150L'+X(120,a0)+' '+Y(120,a0)+'A120 120 0 '+(fr>.5?1:0)+' 1 '+X(120,a1)+' '+Y(120,a1)+'Z" fill="'+c+'" stroke="var(--card)" stroke-width="2"><title>'+esc(cats[i])+': '+nm(x)+' ('+Math.round(fr*100)+'%)</title></path>'}
+   a0=a1;const ly=20+i*26;s+='<rect x="340" y="'+(ly-10)+'" width="12" height="12" rx="3" fill="'+c+'"/><text x="360" y="'+ly+'" font-size="12" '+TX+'>'+esc(cut(cats[i],34))+' – '+nm(x)+' ('+Math.round(fr*100)+'%)</text>'});
+  return s+'</svg>'}
+ if(type==='hbar'){const bh=S>1?12:20,rowH=S*bh+10,H=Math.max(120,N*rowH+40),pl=170,pr=50,iw=W-pl-pr,mx=nice(Math.max(1e-9,...series.flatMap(x=>x.vals)));
+  s='<svg viewBox="0 0 '+W+' '+H+'" class="ag-svg">';
+  for(let i=0;i<=4;i++){const x=pl+iw*i/4;s+='<line x1="'+x+'" x2="'+x+'" y1="8" y2="'+(H-30)+'" style="stroke:var(--bd)" stroke-dasharray="3 5"/><text x="'+x+'" y="'+(H-14)+'" font-size="10" text-anchor="middle" '+MU+'>'+nm(mx*i/4)+'</text>'}
+  cats.forEach((c,i)=>{const y=12+i*rowH;s+='<text x="'+(pl-8)+'" y="'+(y+rowH/2-2)+'" font-size="11" text-anchor="end" '+TX+'>'+esc(cut(c,26))+'</text>';
+   series.forEach((x,k)=>{const w=iw*x.vals[i]/mx;s+='<rect x="'+pl+'" y="'+(y+k*bh)+'" width="'+Math.max(0,w)+'" height="'+(bh-2)+'" rx="3" fill="'+PAL[k%PAL.length]+'"><title>'+esc(c)+' · '+esc(x.name)+': '+nm(x.vals[i])+'</title></rect><text x="'+(pl+w+4)+'" y="'+(y+k*bh+bh-4)+'" font-size="10" '+TX+'>'+nm(x.vals[i])+'</text>'})});
+  s+='<text x="'+(pl+iw/2)+'" y="'+(H-1)+'" font-size="11" text-anchor="middle" '+MU+'>'+esc(o.yl)+'</text>';return s+'</svg>'}
+ const H=340,pl=64,pr=14,pt=14,rot=N>6,pb=(rot?92:46)+20,iw=W-pl-pr,ih=H-pt-pb,stk=type==='stack',ln=type==='line';
+ const tot=cats.map((_,i)=>series.reduce((a,x)=>a+x.vals[i],0)),mx=nice(Math.max(1e-9,...(stk?tot:series.flatMap(x=>x.vals))));
+ s='<svg viewBox="0 0 '+W+' '+H+'" class="ag-svg">';
+ for(let i=0;i<=4;i++){const y=pt+ih-ih*i/4;s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--bd)" stroke-dasharray="3 5"/><text x="'+(pl-6)+'" y="'+(y+3)+'" font-size="10" text-anchor="end" '+MU+'>'+nm(mx*i/4)+'</text>'}
+ const gw=iw/N,lab=N*S<=24;
+ cats.forEach((c,i)=>{const cx=pl+gw*i+gw/2,ty=pt+ih+14;s+=rot?'<text transform="rotate(-35 '+cx+' '+ty+')" x="'+cx+'" y="'+ty+'" font-size="10" text-anchor="end" '+TX+'>'+esc(cut(c,18))+'</text>':'<text x="'+cx+'" y="'+ty+'" font-size="10.5" text-anchor="middle" '+TX+'>'+esc(cut(c,14))+'</text>'});
+ if(ln){series.forEach((x,k)=>{const c=PAL[k%PAL.length],pts=x.vals.map((v,i)=>[pl+gw*i+gw/2,pt+ih-ih*v/mx]);s+='<polyline fill="none" stroke="'+c+'" stroke-width="2.4" points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'"/>';
+   pts.forEach((p,i)=>{s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.6" fill="'+c+'"><title>'+esc(cats[i])+' · '+esc(x.name)+': '+nm(x.vals[i])+'</title></circle>';if(N<=20&&S<=2)s+='<text x="'+p[0].toFixed(1)+'" y="'+(p[1]-8).toFixed(1)+'" font-size="9.5" text-anchor="middle" '+TX+'>'+nm(x.vals[i])+'</text>'})})}
+ else cats.forEach((c,i)=>{const bw=stk?gw*.62:gw*.72/S,x0=pl+gw*i+(gw-(stk?bw:bw*S))/2;let acc=0;
+  series.forEach((x,k)=>{const v=x.vals[i],h=ih*v/mx,col=PAL[k%PAL.length],bx=stk?x0:x0+k*bw,by=stk?pt+ih-ih*acc/mx-h:pt+ih-h;
+   s+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+(bw-1).toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" rx="2" fill="'+col+'"><title>'+esc(c)+' · '+esc(x.name)+': '+nm(v)+'</title></rect>';
+   if(lab&&!stk&&v>0)s+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(by-4).toFixed(1)+'" font-size="9.5" text-anchor="middle" '+TX+'>'+nm(v)+'</text>';acc+=v})});
+ s+='<text x="'+(pl+iw/2)+'" y="'+(H-4)+'" font-size="11.5" font-weight="600" text-anchor="middle" '+TX+'>'+esc(o.xl)+'</text><text transform="rotate(-90 14 '+(pt+ih/2)+')" x="14" y="'+(pt+ih/2)+'" font-size="11.5" font-weight="600" text-anchor="middle" '+TX+'>'+esc(o.yl)+'</text>';
+ return s+'</svg>'}
+function qChart(t0,c,cats,rk0){
+ const rk=rk0.filter(k=>k!=='Amount Mismatch'||/mismatch/.test(t0));let t=t0;
+ const sm=t.match(/(?:stack(?:ed)?|split|break ?down|group(?:ed)?|colou?red|segment(?:ed)?)\s+(?:it\s+|them\s+)?by\s+([a-z ]+)/);let sp=null;if(sm){sp=dimIn(sm[1]);t=t.replace(sm[0],' ')}
+ const ix=t.search(/\bx[ -]?axis/),iy=t.search(/\by[ -]?axis/),seg=i=>{if(i<0)return '';const m=t.slice(i).match(/^[xy][ -]?axis/)[0];let e=t.length;[ix,iy].forEach(j=>{if(j>i&&j<e)e=j});return t.slice(i+m.length,e)};
+ let xs=seg(ix),ys=seg(iy),xd=dimIn(xs);
+ if(!xd){const bm=t.match(/\b(?:by|per|versus|vs|against|across)\s+([a-z\- ]+)/);if(bm)xd=dimIn(bm[1]);if(!xd){const w=t.match(/\b(location|store|date|day|daily|week|month|vendor|category|reason|remark|process)[ -]?wise\b/);if(w)xd=dimIn(w[1])}}
+ if(!xd&&ix>=0)return{html:'I could not understand the X axis “'+esc(xs.trim())+'”. X axis can be: <b>date, week, month, location, vendor, category, reason/remarks, receiver, process</b> or a status like <b>MIRO status</b>.',c};
+ if(!xd)xd=cats?'cat':/trend|daily|over time/.test(t)?'date':'loc';
+ if(sp===xd)sp=null;
+ const yt=(ys||t),mv=/value|amount|sar|qar|money|worth/.test(yt),pct=/percent|%|\brate\b|ratio/.test(yt);
+ const op=c.status==='open'||/pending|open|not posted|outstanding/.test(yt),dn=c.status==='Done'||(!op&&/\bdone\b|completed|posted/.test(yt)),p=c.p||'all';
+ let rs=scope(c,cats);if(rk.length)rs=rs.filter(r=>rk.some(k=>remEq(r,k)));
+ if(!rs.length)return{html:hdr(c,'Chart')+'<p>No entries found for this selection, so there is nothing to draw.</p>',c};
+ const tl=(()=>{const a=[...t.matchAll(/pie|donut|doughnut|horizontal|hbar|\bline\b|trend|stack|\bbar\b|column|histogram/g)].map(m=>m[0]);return a.length?a[a.length-1]:''})();
+ let type=/pie|donut|doughnut/.test(tl)?'pie':/horizontal|hbar/.test(tl)?'hbar':(/\bline\b|trend/.test(tl))?'line':tl==='stack'||(/stack/.test(t0)&&(tl==='bar'||tl==='column'))?'stack':tl?'bar':(['date','week','month'].includes(xd)?'line':'bar');
+ let cs,series,yl,ttl;const met=pct?'% done':mv?'Invoice value':'Invoices';
+ if(xd==='process'){cs=PROC.map(x=>x[1]);const ss=['Done','Pending','In Progress','N/A','Not set'];series=pct?[{name:'% done',vals:PROC.map(([k])=>pc(rs.filter(r=>r[k]==='Done').length,rs.length))}]:ss.map(s=>({name:s,vals:PROC.map(([k])=>rs.filter(r=>st(r[k])===s).length)}));yl=pct?'% done':'Entries';if(!pct&&type==='bar')type='stack'}
+ else{
+  const val=a=>mv?sumV(a):a.length,base=r=>op?isOpen(r,p):dn?isDone(r,p):true;
+  const keys=[...new Set(rs.map(r=>keyOf(r,xd)))],tm=['date','week','month'].includes(xd);
+  const tot=k=>rs.filter(r=>keyOf(r,xd)===k);
+  let sc=xd==='vendor'?(+(t0.match(/top (\d+)/)||[])[1]||10):(type==='pie'?8:tm?40:15);
+  const score=k=>{const a=tot(k).filter(base);return pct?0:val(a)};
+  keys.sort(tm?(a,b)=>a<b?-1:1:(a,b)=>score(b)-score(a));
+  cs=tm?keys.slice(-sc):keys.slice(0,sc);
+  if(sp){const sk=[...new Set(rs.map(r=>keyOf(r,sp)))].sort((a,b)=>rs.filter(r=>keyOf(r,sp)===b&&base(r)).length-rs.filter(r=>keyOf(r,sp)===a&&base(r)).length).slice(0,7);
+   series=sk.map(s=>({name:s,vals:cs.map(k=>{const a=rs.filter(r=>keyOf(r,xd)===k&&keyOf(r,sp)===s);return pct?pc(a.filter(r=>isDone(r,p)).length,a.length):val(a.filter(base))})}));if(type==='bar'&&/stack/.test(t0))type='stack'}
+  else series=[{name:pct?'% done ('+PN[p]+')':(op?'Pending ':dn?'Done ':'')+met.toLowerCase(),vals:cs.map(k=>{const a=tot(k);return pct?pc(a.filter(r=>isDone(r,p)).length,a.length):val(a.filter(base))})}];
+  yl=pct?'% done ('+PN[p]+')':(op?'Pending ':dn?'Done ':'')+met.toLowerCase()+(p!=='all'&&(op||dn)?' – '+PN[p]:'')}
+ if(xd!=='process'&&series.length===1&&!pct&&!['date','week','month'].includes(xd)){const kp2=cs.map((_,i)=>series[0].vals[i]>0);if(kp2.some(Boolean)){cs=cs.filter((_,i)=>kp2[i]);series[0].vals=series[0].vals.filter((_,i)=>kp2[i])}}
+ if(type==='pie'&&series.length>1){type='stack'}
+ const xl=DN[xd]+(sp?' (split by '+DN[sp]+')':'');ttl=yl.charAt(0).toUpperCase()+yl.slice(1)+' by '+DN[xd].toLowerCase();
+ const o={type,cats:cs,series,xl,yl:yl.charAt(0).toUpperCase()+yl.slice(1)};
+ const leg=series.length>1&&type!=='pie'?'<div class="ag-cr" style="margin-top:6px">'+series.map((x,i)=>'<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:'+PAL[i%PAL.length]+'"></i>'+esc(x.name)+'</span>').join('')+'</div>':'';
+ const rowsT=cs.map((k,i)=>[esc(k),...series.map(x=>nm(x.vals[i]))]),txt=[ttl,...cs.map((k,i)=>k+': '+series.map(x=>(series.length>1?x.name+' ':'')+nm(x.vals[i])).join(', '))];
+ let h=hdr(c,(cats?cats.join(' + ')+' · ':'')+(rk.length?rk.join(' + ')+' · ':'')+'Chart')+'<div class="ag-s">'+esc(ttl)+'</div><div class="ag-ch">'+drawChart(o)+leg+'</div><p><button type="button" class="btn alt" data-png style="padding:4px 10px">🖼 Save chart image</button></p>'+tblH([DN[xd],...series.map(x=>x.name)],rowsT,series.map((_,i)=>i+1));
+ const tops=series.length===1?cs.map((k,i)=>[k,series[0].vals[i]]).sort((a,b)=>b[1]-a[1])[0]:null;
+ if(tops&&tops[1]>0)h+='<p>Highest: <b>'+esc(tops[0])+'</b> – '+nm(tops[1])+'.</p>';
+ return{html:h,txt:txt.join('\n'),c}}
+/* ---- AI Agent page (own tab) ---- */
+let AGP=null;
+function agentPage(){
+ if(AGP)return AGP;
+ const stl=document.createElement('style');stl.textContent='.agp{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}.agp-main{display:flex;flex-direction:column}.agp-msgs{min-height:420px;max-height:64vh}.agp .st-m{max-width:100%}.agp-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.agp-h h2{margin:0;font-size:18px}.agp-hist button{display:block;width:100%;text-align:left;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;padding:6px 9px;margin-bottom:6px;font:inherit;font-size:12px;cursor:pointer}.agp-hist button:hover{border-color:var(--ac)}.ag-fu{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ag-fu button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:999px;padding:3px 10px;font-size:11px;cursor:pointer}.ag-fu button:hover{border-color:var(--ac)}.ag-svg{width:100%;height:auto;display:block}.ag-ch{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px}@media (max-width:900px){.agp{grid-template-columns:1fr}.agp-msgs{max-height:none}}';document.head.append(stl);
+ const root=$('div',{className:'agp'});
+ root.innerHTML='<div class="card agp-main"><div class="agp-h"><h2>🤖 AI Data Analyst</h2><span class="mut">Reads all 4 sheets live · remembers your questions</span><span class="sp"></span><button type="button" class="btn alt" data-clr>🧹 Clear chat</button></div><div class="st-chips"></div><div class="st-msgs agp-msgs"></div><div class="st-in"><input class="ag-i" placeholder="Ask, command, or say: bar chart, x axis location, y axis pending invoices"><button type="button" class="btn ag-s2">Ask</button></div></div><div class="card"><h3 style="margin:0 0 8px">🧠 Your questions</h3><p class="mut" style="margin:0 0 8px;font-size:12px">Saved on this device. Click one to ask it again.</p><div class="agp-hist"></div><button type="button" class="btn alt" data-clh style="padding:4px 10px">Clear history</button></div>';
+ const q=s=>root.querySelector(s),msgs=q('.agp-msgs'),inp=q('.ag-i'),hist=q('.agp-hist');
+ const KEYC='grn_agent_chat_v1';let MEM;try{MEM=JSON.parse(localStorage.getItem(KEYC))||{}}catch(e){MEM={}}MEM.m=MEM.m||[];MEM.q=MEM.q||[];
+ const save=()=>{MEM.m=MEM.m.slice(-40);MEM.q=MEM.q.slice(-60);try{localStorage.setItem(KEYC,JSON.stringify(MEM))}catch(e){try{MEM.m=MEM.m.slice(-8);localStorage.setItem(KEYC,JSON.stringify(MEM))}catch(e2){}}};
+ const histPaint=()=>{hist.innerHTML=MEM.q.length?MEM.q.slice().reverse().slice(0,25).map(x=>'<button type="button" data-q="'+esc(x.q)+'">'+esc(cut(x.q,60))+'</button>').join(''):'<p class="mut" style="font-size:12px">Nothing yet.</p>'};
+ const add=(k,h)=>{const d=document.createElement('div');d.className='st-m '+k;d.innerHTML=h;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;return d};
+ const UNK='I can answer about GRN (MIGO), MIRO, Forward to Accounts and Scanning for all 4 sheets. Try: <i>perishable invoices pending location wise</i>, <i>GRN pending due to deficit</i>, <i>list not received by accounts</i>, <i>MIGO MIRO scanning percentage</i>, <i>bar chart x axis vendor y axis invoice value</i>, or commands like <i>replace N/A with Pending</i> and <i>fix SL No</i>. I also remember what you asked – say <i>my last questions</i>.';
+ const fu=(txt,a)=>{const k=a.k||'';const base=txt.replace(/\s+as (a )?(pie|line|bar|horizontal bar|stacked bar) chart\s*$/i,'');let l=[];
+  if(k==='chart')l=[base+' as pie chart',base+' as line chart',base+' as horizontal bar chart',base+' as stacked bar chart'];
+  else if(k==='perish'||k==='reason')l=['Make a bar chart of this by location','Make a pie chart of this by vendor','List details of this','Percentage done of this'];
+  else if(k==='pct')l=['Bar chart of this by location','Pending invoices by location'];
+  else if(k==='gen')l=['Make a bar chart of this by location','Show this as a pie chart by reason'];
+  return l.length?'<div class="ag-fu">'+l.map(x=>'<button type="button" data-q="'+esc(x)+'">'+esc(x)+'</button>').join('')+'</div>':''};
+ let PRV=null;
+ const pre=txt=>{const t=txt.toLowerCase();
+  if(/(what|which).*(did i ask|i asked|questions)|\b(my|the)\s+(previous|last|recent|earlier)\s+(questions?|queries)|\bquestion history\b|\bmy history\b/.test(t)){const a=MEM.q.slice(0,-1).reverse().slice(0,10);return{html:a.length?'<p>Your recent questions (newest first) – click to ask again:</p><div class="ag-fu" style="flex-direction:column;align-items:flex-start">'+a.map(x=>'<button type="button" data-q="'+esc(x.q)+'">'+esc(x.q)+'</button>').join('')+'</div>':'<p>You have not asked anything else yet.</p>'}}
+  if(/^\s*(repeat|again|ask again|same again|do it again|repeat last)\s*$/.test(t)){const p=MEM.q.slice(0,-1).pop();if(p){setTimeout(()=>ask(p.q),50);return{html:'<p>Repeating: <i>'+esc(p.q)+'</i></p>'}}}
+  return null};
+ const ask=txt=>{txt=String(txt).trim();if(!txt)return;add('u',esc(txt));MEM.m.push({k:'u',h:esc(txt)});inp.value='';
+  MEM.q=MEM.q.filter(x=>x.q.toLowerCase()!==txt.toLowerCase());MEM.q.push({q:txt,ts:Date.now()});histPaint();
+  const th=add('a','<span class="st-dots"><i></i><i></i><i></i></span>');
+  setTimeout(()=>{let a;try{a=pre(txt)||SMART(txt,PRV);if(a){if(a.c)PRV=a.c}else{const c=parseQ(txt,PRV);if(!c.known)a={html:UNK};else{PRV=c;a=answer(c);a.k='gen'}}}catch(er){console.error(er);a={html:'Sorry, I could not analyse that. Please rephrase.'}}
+   th.innerHTML=a.html+(a.txt?'<div style="margin-top:8px"><button type="button" class="btn alt" data-copy style="padding:4px 10px">📋 Copy report</button></div>':'')+fu(txt,a);const cb=th.querySelector('[data-copy]');if(cb)cb._t=a.txt;if(a.after)a.after(th);
+   MEM.m.push({k:'a',h:th.innerHTML});save();msgs.scrollTop=msgs.scrollHeight},350)};
+ root.addEventListener('click',async e=>{const T=e.target;
+  const b=T.closest('[data-ag]');if(b){const row=b.parentElement;row.querySelectorAll('button').forEach(x=>x.disabled=true);if(b.dataset.ag==='no'){AGX.cancel();row.insertAdjacentHTML('afterend','<p>Cancelled – nothing was changed.</p>');return}const sp=document.createElement('p');sp.textContent='Working…';row.insertAdjacentElement('afterend',sp);const h=await AGX.run((d,n,m)=>{sp.textContent=m||('Working… '+d+' / '+n)});sp.outerHTML=h;msgs.scrollTop=msgs.scrollHeight;return}
+  const cp=T.closest('[data-copy]');if(cp){try{navigator.clipboard.writeText(cp._t||'');cp.textContent='✔ Copied'}catch(er){}return}
+  const dq=T.closest('[data-q]');if(dq){ask(dq.dataset.q);return}
+  const pg=T.closest('[data-png]');if(pg){const svg=pg.closest('.st-m').querySelector('.ag-svg');if(!svg)return;const cs=getComputedStyle(document.documentElement);let x=new XMLSerializer().serializeToString(svg).replace(/var\(--([a-z0-9]+)\)/g,(m,n)=>cs.getPropertyValue('--'+n).trim()||'#888');if(!/xmlns=/.test(x))x=x.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+   const vb=svg.viewBox.baseVal,im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=vb.width*2;cv.height=vb.height*2;const g=cv.getContext('2d');g.fillStyle=cs.getPropertyValue('--card').trim()||'#fff';g.fillRect(0,0,cv.width,cv.height);g.drawImage(im,0,0,cv.width,cv.height);cv.toBlob(bl=>{const a=$('a',{href:URL.createObjectURL(bl),download:'agent-chart-'+today()+'.png'});document.body.append(a);a.click();a.remove()})};im.onerror=()=>toast('Could not create the image',1);im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x);return}
+  if(T.closest('[data-clr]')){MEM.m=[];save();msgs.innerHTML='';add('a',welcome);return}
+  if(T.closest('[data-clh]')){MEM.q=[];save();histPaint()}});
+ q('.ag-s2').onclick=()=>ask(inp.value);inp.addEventListener('keydown',e=>{if(e.key==='Enter')ask(inp.value)});
+ q('.st-chips').innerHTML=['Perishable invoices pending location wise and date wise','How many GRN pending due to deficit?','List not received by accounts details','MIGO MIRO scanning percentage','Bar chart x axis location y axis pending invoices','Pie chart of pending by reason','Line chart x axis date y axis invoice value last 30 days','Replace N/A with Pending','Fix SL No in all sheets','My last questions'].map(x=>'<button type="button" data-q="'+esc(x)+'">'+esc(x)+'</button>').join('');
+ const welcome='Hi! I read all 4 sheets live. Ask for counts, lists, percentages and reasons, or ask for a chart and name the axes, e.g. <i>bar chart x axis vendor y axis invoice value for fruits</i>. Axis choices – X: date, week, month, location, vendor, category, reason, process; Y: invoices, invoice value, pending, done, % done. I keep your questions in the list on the right.';
+ if(MEM.m.length){MEM.m.forEach(m=>add(m.k,m.h));msgs.querySelectorAll('[data-ag]').forEach(x=>x.disabled=true)}else add('a',welcome);
+ histPaint();root._on=()=>{msgs.scrollTop=msgs.scrollHeight};AGP=root;return root}
+
 /* ---- studio ---- */
 let PST=null;
 function buildStudio(){
  const root=document.createElement('div'),S={on:new Set(L),p:'migo',meas:'n',mode:'stream',data:[]};let PRV=null;
- root.innerHTML='<div class="card st-tools"></div><div class="st-gs"></div><div class="st-main"><div class="st-left"><div class="card"><h3>🌊 Fluid trend – 4 locations</h3><div class="st-fx"></div></div><div class="card"><h3>❓ Why not posted – reasons from Remarks <span class="mut" style="font-weight:400;font-size:12px">(click a bar)</span></h3><div class="st-rs"></div><div class="st-dt"></div></div></div><div class="card st-agent"><h3 style="margin:0 0 8px">🤖 AI data analyst agent</h3><div class="st-chips"></div><div class="st-msgs"></div><div class="st-in"><input class="ag-i" placeholder="Ask: how many GRN done in warehouse?"><button type="button" class="btn ag-s2">Ask</button></div></div></div>';
+ root.innerHTML='<div class="card st-tools"></div><div class="st-gs"></div><div class="st-main"><div class="st-left"><div class="card"><h3>🌊 Fluid trend – 4 locations</h3><div class="st-fx"></div></div><div class="card"><h3>❓ Why not posted – reasons from Remarks <span class="mut" style="font-weight:400;font-size:12px">(click a bar)</span></h3><div class="st-rs"></div><div class="st-dt"></div></div></div><div class="card st-agent"><h3 style="margin:0 0 8px">🤖 AI data analyst agent</h3><div class="st-chips"></div><div class="st-msgs"></div><div class="st-in"><input class="ag-i" placeholder="Ask or command: perishable pending, GRN deficit, replace N/A with Pending…"><button type="button" class="btn ag-s2">Ask</button></div></div></div>';
  const q=s=>root.querySelector(s),tools=q('.st-tools'),gs=q('.st-gs'),fx=q('.st-fx'),rs2=q('.st-rs'),dt=q('.st-dt'),msgs=q('.st-msgs'),inp=q('.ag-i');
  const chip=(a,b,on,attr)=>'<button type="button" class="tab'+(on?' on':' off')+'" '+attr+'>'+b+'</button>';
  function render(){const rs=S.data.filter(r=>S.on.has(r.l)),stores=L.filter(l=>S.on.has(l));
@@ -1004,14 +1250,15 @@ function buildStudio(){
   const r=e.target.closest('.st-rs .st-r');if(r){const x=(rs2._rr||[]).find(y=>y.k===r.dataset.t);if(x)dt.innerHTML='<b>'+esc(x.k)+'</b>'+x.it.slice().sort((a,b)=>(a.date||'z')<(b.date||'z')?-1:1).slice(0,8).map(i=>'<div>'+i.l+' · '+esc(vN(i))+' · inv '+esc(i.inv||'-')+' · '+(ageD(i)==null?'':ageD(i)+' days')+' · '+fmt(ivn(i))+'</div>').join('')+(x.n>8?'<div class="mut">+ '+(x.n-8)+' more</div>':'')}
   const cp=e.target.closest('[data-copy]');if(cp){try{navigator.clipboard.writeText(cp._t||'');cp.textContent='✔ Copied'}catch(er){}}});
  root.addEventListener('change',e=>{if(e.target.classList.contains('st-p')){S.p=e.target.value;render()}});
+ root.addEventListener('click',async e=>{const b=e.target.closest('[data-ag]');if(!b)return;const box=b.closest('.st-m'),row=b.parentElement;row.querySelectorAll('button').forEach(x=>x.disabled=true);if(b.dataset.ag==='no'){AGX.cancel();row.insertAdjacentHTML('afterend','<p>Cancelled – nothing was changed.</p>');return}const sp=document.createElement('p');sp.textContent='Working…';row.insertAdjacentElement('afterend',sp);const h=await AGX.run((d,n,m)=>{sp.textContent=m||('Working… '+d+' / '+n)});sp.outerHTML=h;msgs.scrollTop=msgs.scrollHeight});
  const add=(k,h)=>{const d=document.createElement('div');d.className='st-m '+k;d.innerHTML=h;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;return d};
  const ask=txt=>{txt=txt.trim();if(!txt)return;add('u',esc(txt));inp.value='';const c=parseQ(txt,PRV),th=add('a','<span class="st-dots"><i></i><i></i><i></i></span>');
-  setTimeout(()=>{let a;try{if(!c.known)a={html:'I can analyse GRN (MIGO), MIRO, Forward to Accounts and Invoice scanning for the warehouse and the 3 shops, with reasons from your Remarks. Try: <i>why GRN not posted in D-Ring last 30 days</i> or <i>full report Muaither this month</i>.'};else{PRV=c;a=answer(c)}}catch(er){console.error(er);a={html:'Sorry, I could not analyse that. Please rephrase.'}}
+  setTimeout(()=>{let a;try{a=SMART(txt,PRV);if(a){if(a.c)PRV=a.c}else if(!c.known)a={html:'I can analyse GRN (MIGO), MIRO, Forward to Accounts and Invoice scanning for the warehouse and the 3 shops, with reasons from your Remarks. Try: <i>how many perishable invoices pending location wise</i>, <i>GRN pending due to deficit</i>, <i>not received by accounts details</i>, <i>MIGO MIRO scanning percentage</i> or <i>replace N/A with Pending</i>.'};else{PRV=c;a=answer(c)}}catch(er){console.error(er);a={html:'Sorry, I could not analyse that. Please rephrase.'}}
    th.innerHTML=a.html+(a.txt?'<div style="margin-top:8px"><button type="button" class="btn alt" data-copy style="padding:4px 10px">📋 Copy report</button></div>':'');const cb=th.querySelector('[data-copy]');if(cb)cb._t=a.txt;if(a.after)a.after(th);msgs.scrollTop=msgs.scrollHeight},420)};
  q('.ag-s2').onclick=()=>ask(inp.value);inp.addEventListener('keydown',e=>{if(e.key==='Enter')ask(inp.value)});
- q('.st-chips').innerHTML=['How many GRN done in warehouse?','Why GRN not posted in 4622?','Compare all stores MIRO pending this month','Full report Muaither last 30 days','Top vendors with pending GRN','Daily trend of entries last 30 days'].map(x=>'<button type="button">'+x+'</button>').join('');
+ q('.st-chips').innerHTML=['Perishable invoices pending location wise and date wise','How many GRN pending due to deficit?','How many price issue?','List not received by accounts details','MIGO MIRO scanning percentage','Replace N/A with Pending','Fix SL No in all sheets','Why GRN not posted in 4622?','Full report Muaither last 30 days'].map(x=>'<button type="button">'+x+'</button>').join('');
  q('.st-chips').onclick=e=>{if(e.target.tagName==='BUTTON')ask(e.target.textContent)};
- add('a','Hi! I am the built-in analyst for your 4 locations. I read the register live, count what is done or not posted, explain <b>why</b> from the Remarks column, and draw small reports with graphs. Ask in your own words – store, date range and process (GRN, MIRO…) are picked up from your question. I use all dates unless you give a period.');
+ add('a','Hi! I am the built-in analyst for your 4 locations. I read the register live, count what is done or not posted, explain <b>why</b> from the Remarks column, and draw small reports with graphs. Ask in your own words – store, date range and process (GRN, MIRO…) are picked up from your question. I use all dates unless you give a period.<br><br><b>New:</b> perishable vendors (Fruits &amp; Vegetables, Fish &amp; Seafood, Butchery), pending by reason (deficit, price…), % of MIGO / MIRO / scanning, not-received-by-accounts lists and PO lookup, plus commands: <i>replace N/A with Pending</i> (I will ask which sheet) and <i>fix SL No</i>.');
  return{root,set(d){S.data=d;if(SSCUR==='studio')render()},render}}
 function mountStudio(res,data){const slot=res.querySelector('#stslot');if(!slot)return;if(!PST)PST=buildStudio();slot.appendChild(PST.root);PST.set(data)}
 function sum(){
