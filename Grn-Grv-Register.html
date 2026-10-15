@@ -108,7 +108,7 @@ body.out .warn{display:none}
 .whv{position:relative;height:500px;border-radius:10px;overflow:hidden;border:1px solid var(--bd);background:var(--bg)}
 .whv canvas{display:block;width:100%;height:100%;touch-action:pan-y;cursor:default}.whv.ctl{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}.whv.ctl canvas{touch-action:none;cursor:grab}.whv.ctl canvas:active{cursor:grabbing}
 .whl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.wlb{position:absolute;transform:translate(-50%,-100%);background:var(--hd);color:#fff;border-radius:6px;padding:4px 8px;font-size:11px;line-height:1.35;white-space:nowrap;border-left:3px solid var(--ac);transition:opacity .2s}
+.wlb{position:absolute;transform:translate(-50%,-100%);background:var(--hd);color:#fff;border-radius:6px;padding:3px 7px;font-size:10.5px;line-height:1.3;white-space:nowrap;border-left:3px solid var(--ac);min-width:0;width:max-content;transition:opacity .2s}
 .wlb b{display:block;font-size:12px}
 .whp{position:absolute;top:8px;right:8px;width:270px;max-height:calc(100% - 16px);overflow:auto;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .whp[hidden]{display:none}.pt{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:8px}
@@ -181,7 +181,7 @@ body,.card,header,.bar,.tw,input,select,td,th{transition:background-color .25s,c
 .ss-flow .cg>.card{border-top:3px solid var(--ac)}
 
 /* animated procurement flow chart */
-.fw-card{margin-bottom:14px}.fw-card[hidden]{display:none}
+.fw-card{margin-bottom:14px}.fw-tg{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;background:none;border:0;color:var(--tx);font:700 16px/1.3 inherit;cursor:pointer;padding:2px 0;text-align:left}.fw-tg .car{font-size:12px;font-weight:600;color:var(--mut);border:1px solid var(--bd);border-radius:999px;padding:3px 10px;white-space:nowrap}.fw-tg[aria-expanded=true] .car{background:var(--ac);color:var(--ac2);border-color:var(--ac)}.fw-body{margin-top:12px}.fw-body[hidden]{display:none}.fw-card[hidden]{display:none}
 .fw-h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.fw-h h3{margin:0}.fw-h .tab,.fw-h .btn{padding:5px 11px}
 .fw-wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
 .fw-svg{display:block;min-width:780px;width:100%;height:auto}
@@ -238,9 +238,9 @@ header.hd{flex-wrap:wrap}
 .st-g svg{width:116px;height:116px}.st-g b{display:block;font-size:13px}.st-g small{color:var(--mut);font-size:11px;line-height:1.4;display:block}
 .gw{transition:transform 1.4s cubic-bezier(.2,.8,.2,1)}.wv{animation:stw 3.5s linear infinite}.wv.w2{animation-duration:5.5s;animation-direction:reverse}
 @keyframes stw{to{transform:translateX(-50px)}}
-.st-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);gap:14px;align-items:start}
+.st-main{display:block}
 @media (max-width:980px){.st-main{grid-template-columns:1fr}.st-agent{order:-1}}
-.st-left{display:grid;gap:14px;min-width:0}
+.st-left{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:14px;min-width:0;align-items:start}@media (max-width:980px){.st-left{grid-template-columns:1fr}}
 .st-fc{position:relative;animation:streveal 1.1s ease-out both}.st-svg{width:100%;height:auto;display:block}
 @keyframes streveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 .st-tip{position:absolute;top:4px;background:var(--hd);color:#fff;border-radius:8px;padding:6px 9px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:2}
@@ -498,7 +498,7 @@ function build(){
   vehs.forEach(t=>{if(t.ext)return;const s=st[t.l],k=s.n?1+Math.min(2,Math.floor((s.gp+s.mp)/5)):0;t.on=t.i<k});
   wkN=4+Math.min(8,Math.floor((st['4620'].gp+st['4620'].mp)/4));panel();
   belt.forEach(m=>m.material=M(pick('4620')));
-  LOCS.forEach(l=>{const s=st[l];lb[l].innerHTML='<b>'+l+' '+NAME[l]+'</b>'+s.n+' entries<br>'+s.gp+' GRN pending, '+s.mp+' MIRO pending'});
+  LOCS.forEach(l=>{const s=st[l];lb[l].innerHTML='<b>'+l+' '+NAME[l]+'</b>'+s.n+' entries<br>'+s.gp+' GRN pending<br>'+s.mp+' MIRO pending'});
   leg.innerHTML=[['#1a7f4b','Completed'],['#e5384f','GRN pending'],['#e6a100','MIRO pending'],['#8a94a3','Other open']].map(([c,t])=>'<span><i style="background:'+c+'"></i>'+t+'</span>').join('')+'<span>1 crate = '+sc+(sc>1?' entries':' entry')+'</span>'}
  // animation
  const ang=a=>((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
@@ -834,10 +834,10 @@ function buildFlow(){
  PFN.forEach((n,k)=>{const two=n.t.length>1;
   svg+='<g class="fw-n" data-i="'+k+'" transform="translate('+n.x+' '+n.y+')" tabindex="0" role="button" aria-label="'+e(n.t.join(' '))+'"><g class="fw-in"><rect x="-66" y="-42" width="132" height="84" rx="12"/><text class="ic" y="-20">'+n.i+'</text>'+n.t.map((s,j)=>'<text class="ti" y="'+(two?-1+j*13:5)+'">'+e(s)+'</text>').join('')+'<text class="ow" y="32">'+e(n.w)+'</text></g>'+(n.b?'<g class="fw-bd" data-b="'+n.b+'" transform="translate(58 -36)" style="display:none"><circle r="12"/><text y="3.5">0</text></g>':'')+'</g>'});
  svg+='<g class="fw-tok" style="transform:translate(34px,20px)"><circle class="pl" r="17"/><circle class="bg" r="15"/><text class="tt" y="6" text-anchor="middle" style="font-size:16px">📝</text></g></svg>';
- root.innerHTML='<div class="fw-h"><h3>🔄 Procurement flow · PO → store → floor / return</h3><span class="sp"></span><button type="button" class="tab fw-sc" data-s="auto">🔁 Auto</button><button type="button" class="tab fw-sc" data-s="A">✅ Normal receipt</button><button type="button" class="tab fw-sc" data-s="B">↩️ With return</button><button type="button" class="btn alt fw-play">⏸ Pause</button><button type="button" class="btn alt fw-rs">⏮ Restart</button><button type="button" class="btn alt fw-sp">1×</button></div><div class="fw-wrap">'+svg+'</div><div class="fw-panel"></div><p class="mut" style="margin:8px 2px 0;font-size:12px">Click any box to jump to that step. Faded boxes belong to the other path. Red badges show live pending counts from your register (current filter).</p>';
+ root.innerHTML='<button type="button" class="fw-tg" aria-expanded="false"><span>🔄 Procurement flow · PO → store → floor / return</span><span class="car">▾ Show / hide</span></button><div class="fw-body" hidden><div class="fw-h"><span class="sp"></span><button type="button" class="tab fw-sc" data-s="auto">🔁 Auto</button><button type="button" class="tab fw-sc" data-s="A">✅ Normal receipt</button><button type="button" class="tab fw-sc" data-s="B">↩️ With return</button><button type="button" class="btn alt fw-play">⏸ Pause</button><button type="button" class="btn alt fw-rs">⏮ Restart</button><button type="button" class="btn alt fw-sp">1×</button></div><div class="fw-wrap">'+svg+'</div><div class="fw-panel"></div><p class="mut" style="margin:8px 2px 0;font-size:12px">Click any box to jump to that step. Faded boxes belong to the other path. Red badges show live pending counts from your register (current filter).</p></div>';
  const q=s=>root.querySelector(s),qa=s=>[...root.querySelectorAll(s)];
  const tok=q('.fw-tok'),tt=q('.fw-tok .tt'),panel=q('.fw-panel'),nodes=qa('.fw-n'),links=qa('.fw-l'),bds=qa('.fw-bd'),bPlay=q('.fw-play'),bSp=q('.fw-sp');
- let sc='auto',cur='A',seq=PFSA,pos=0,playing=false,userPaused=matchMedia('(prefers-reduced-motion: reduce)').matches,timers=[],speed=1;
+ let sc='auto',cur='A',seq=PFSA,pos=0,playing=false,userPaused=matchMedia('(prefers-reduced-motion: reduce)').matches,timers=[],speed=1,isOpen=false;
  const T=(f,ms)=>{timers.push(setTimeout(f,ms/speed))},clr=()=>{timers.forEach(clearTimeout);timers=[]};
  const rest=n=>[PFN[n].x-46,PFN[n].y-42];
  const put=(p,ms)=>{tok.style.transitionDuration=(ms/speed)+'ms';tok.style.transform='translate('+p[0]+'px,'+p[1]+'px)'};
@@ -852,19 +852,23 @@ function buildFlow(){
   else{put(rest(n),600);mark(i)}};
  const settle=()=>{put(rest(seq[pos]),0);mark(pos)};
  const restart=keep=>{clr();pos=0;tok.style.opacity=0;put(rest(seq[0]),0);mark(0);tt.textContent=PFN[seq[0]].i;info();T(()=>{tok.style.opacity=1},60);if(keep&&playing)T(step,1300)};
- function step(){if(!playing)return;if(!root.isConnected||root.hidden){playing=false;sync();return}
+ function step(){if(!playing)return;if(!root.isConnected||root.hidden||!isOpen){playing=false;sync();return}
   if(pos+1<seq.length){const w=PFW[seq[pos]+'-'+seq[pos+1]]||[],tr=w.length?w.length*380+380:900;go(pos+1,'move');T(step,tr+1900)}
   else T(()=>{if(!playing)return;if(sc==='auto')cur=cur==='A'?'B':'A';seq=cur==='A'?PFSA:PFSB;restart(true)},1800)}
  bPlay.onclick=()=>{if(playing){userPaused=true;playing=false;clr();settle();sync()}else{userPaused=false;if(pos>=seq.length-1)restart(false);playing=true;sync();T(step,300)}};
  q('.fw-rs').onclick=()=>{restart(true);sync()};
- bSp.onclick=()=>{speed=speed===1?1.5:speed===1.5?2:1;sync()};
+ bSp.onclick=()=>{const SP=[0.25,0.5,1,1.5,2];speed=SP[(SP.indexOf(speed)+1)%SP.length];sync()};
  qa('.fw-sc').forEach(b=>b.onclick=()=>{sc=b.dataset.s;if(sc!=='auto')cur=sc;seq=cur==='A'?PFSA:PFSB;userPaused=false;playing=true;restart(true);sync()});
  const onNode=k=>{userPaused=true;playing=false;clr();let want=seq.includes(k)?cur:(k===6?'A':'B');if(want!==cur){cur=want;seq=want==='A'?PFSA:PFSB;if(sc!=='auto')sc=cur}tok.style.opacity=1;go(seq.indexOf(k),'jump');sync()};
  root.addEventListener('click',ev=>{const n=ev.target.closest('.fw-n');if(n)onNode(+n.dataset.i)});
  root.addEventListener('keydown',ev=>{if(ev.key!=='Enter'&&ev.key!==' ')return;const n=ev.target.closest&&ev.target.closest('.fw-n');if(n){ev.preventDefault();onNode(+n.dataset.i)}});
  restart(false);sync();
+ const tg=q('.fw-tg'),bd=q('.fw-body');
+ tg.onclick=()=>{isOpen=!isOpen;bd.hidden=!isOpen;tg.setAttribute('aria-expanded',isOpen);
+  if(isOpen){userPaused=matchMedia('(prefers-reduced-motion: reduce)').matches;if(!userPaused&&!playing){playing=true;sync();T(step,600)}}
+  else if(playing){playing=false;clr();settle();sync()}};
  return{root,api:{
-  resume(){if(userPaused||playing)return;playing=true;sync();T(step,1100)},
+  resume(){if(!isOpen||userPaused||playing)return;playing=true;sync();T(step,1100)},
   stop(){if(!playing)return;playing=false;clr();settle();sync()},
   data(){bds.forEach(g=>{const v=PFDATA[g.dataset.b]||0;g.style.display=v?'':'none';g.querySelector('text').textContent=v>99?'99+':v});info()}}}}
 function mountFlow(res,data){
@@ -922,6 +926,62 @@ function streamChart(el,rs,o){
  const fc=el.querySelector('.st-fc'),gl=fc.querySelector('.gl'),tip=fc.querySelector('.st-tip');
  fc.onpointermove=e=>{const b=fc.getBoundingClientRect(),i=Math.max(0,Math.min(n-1,Math.round(((e.clientX-b.left)/b.width*W-pl)/stp)));gl.setAttribute('x1',sx(i));gl.setAttribute('x2',sx(i));gl.style.opacity=.5;tip.hidden=false;tip.style.left=Math.min(70,Math.max(1,sx(i)/W*100-8))+'%';tip.innerHTML='<b>'+fl(ks[i])+'</b>'+S.map((l,k)=>'<div><i style="background:'+STC[l]+'"></i>'+l+' · '+(o.meas==='v'?fmt(V[k][i]):V[k][i])+'</div>').join('')};
  fc.onpointerleave=()=>{gl.style.opacity=0;tip.hidden=true}}
+
+/* ---- 3D chart (replaces the fluid trend): stacked towers per store, or weekly blocks ---- */
+function chart3d(el,rs,o){
+ o=Object.assign({mode:'loc',meas:'n',p:'migo',stores:L},o);
+ let C=el._c3;
+ if(!C){try{
+  const host=document.createElement('div');host.style.cssText='position:relative;height:320px;touch-action:none;cursor:grab';
+  const tip=document.createElement('div');tip.className='st-tip';tip.hidden=true;
+  const lg=document.createElement('div');lg.className='mut';lg.style.cssText='font-size:11.5px;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap';
+  const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.domElement.style.cssText='display:block;width:100%;height:100%';
+  host.append(R.domElement,tip);el.replaceChildren(host,lg);
+  const S=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,.1,200),G=new THREE.Group(),dl=new THREE.DirectionalLight(0xffffff,.7);
+  dl.position.set(8,14,10);S.add(G,new THREE.AmbientLight(0xffffff,.8),dl);
+  C={host,tip,lg,G,th:-.5,ph:.55,rd:22};
+  C.draw=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();
+   cam.position.set(C.rd*Math.sin(C.th)*Math.cos(C.ph),C.rd*Math.sin(C.ph),C.rd*Math.cos(C.th)*Math.cos(C.ph));cam.lookAt(0,2.4,0);R.render(S,cam)};
+  new ResizeObserver(C.draw).observe(host);
+  let dn=null;const ray=new THREE.Raycaster();
+  host.onpointerdown=e=>{dn=[e.clientX,e.clientY];host.setPointerCapture(e.pointerId);host.style.cursor='grabbing'};
+  host.onpointerup=()=>{dn=null;host.style.cursor='grab'};
+  host.onpointerleave=()=>{tip.hidden=true};
+  host.onpointermove=e=>{
+   if(dn){C.th-=(e.clientX-dn[0])*.01;C.ph=Math.max(.12,Math.min(1.35,C.ph+(e.clientY-dn[1])*.006));dn=[e.clientX,e.clientY];tip.hidden=true;C.draw();return}
+   const b=host.getBoundingClientRect();ray.setFromCamera({x:(e.clientX-b.left)/b.width*2-1,y:-((e.clientY-b.top)/b.height)*2+1},cam);
+   const h=ray.intersectObjects(G.children).find(x=>x.object.userData.t);
+   if(h){tip.hidden=false;tip.textContent=h.object.userData.t;tip.style.left=Math.max(2,Math.min(b.width-170,e.clientX-b.left+10))+'px';tip.style.top=Math.max(2,e.clientY-b.top-30)+'px'}else tip.hidden=true};
+  el._c3=C}catch(err){streamChart(el,rs,{mode:'stream',meas:o.meas,p:o.p,stores:o.stores});return}}
+ const G=C.G,col=getComputedStyle(el).color||'#888';
+ G.children.slice().forEach(m=>{G.remove(m);if(m.geometry)m.geometry.dispose();if(m.material){if(m.material.map)m.material.map.dispose();m.material.dispose()}});
+ const tx=(t,sz,c)=>{const cv=document.createElement('canvas');cv.width=256;cv.height=64;const g=cv.getContext('2d');g.font='700 26px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=c||col;g.fillText(t,128,32);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));s.scale.set(sz*4,sz,1);return s};
+ const at=(s,x,y,z)=>{s.position.set(x,y,z);G.add(s)};
+ const box=(w,h,d,c,x,y,z,t)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.55}));m.position.set(x,y+h/2,z);m.userData.t=t;G.add(m)};
+ const grid=new THREE.GridHelper(26,26,0x8892b0,0x8892b0);grid.material.transparent=true;grid.material.opacity=.22;G.add(grid);
+ const val=r=>o.meas==='v'?ivn(r):1,vf=n=>o.meas==='v'?fmt(n):String(n),St=o.stores,n=St.length,HM=7,dot=(c,t)=>'<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+c+';margin-right:5px"></i>'+t+'</span>';
+ let lg='';
+ if(o.mode==='loc'){
+  const T=St.map(l=>{const a=rs.filter(r=>r.l===l),sm=x=>x.reduce((t,r)=>t+val(r),0),d=sm(a.filter(r=>isDone(r,o.p))),p=sm(a.filter(r=>isOpen(r,o.p))),ot=sm(a)-d-p;return{l,d:o.meas==='open'?0:d,p,o:o.meas==='open'?0:ot}});
+  const k=HM/Math.max(1,...T.map(t=>t.d+t.p+t.o));
+  T.forEach((t,i)=>{const x=(i-(n-1)/2)*4.6;let y=0;
+   [['d',SCOL.Done,'Done'],['o','#9aa4b5','Other / not set'],['p',SCOL.Pending,'Not posted']].forEach(([f,c,nm])=>{const v=t[f];if(v>0){const h=Math.max(.12,v*k);box(2.8,h,2.8,c,x,y,0,t.l+' · '+nm+': '+vf(v));y+=h}});
+   at(tx(t.l+' '+STN[t.l],.9),x,-.6,2.6);at(tx(vf(t.d+t.p+t.o),1.1),x,y+.8,0);if(t.p>0)at(tx(vf(t.p)+' not posted',.8,SCOL.Pending),x,y+1.7,0)});
+  C.rd=22;lg=dot(SCOL.Done,'Done')+dot('#9aa4b5','Other / not set')+dot(SCOL.Pending,'Not posted ('+PN[o.p]+')')+'<span>Tower height = '+(o.meas==='v'?'invoice value':'entries')+'</span>';
+ }else{
+  const ds=rs.filter(r=>r.date).map(r=>r.date).sort();
+  if(ds.length){
+   const D=x=>new Date(x+'T00:00:00'),wk=x=>{const d=D(x);d.setDate(d.getDate()-d.getDay());return ymd(d)},end=D(wk(ds[ds.length-1])),NW=12,ks=[];
+   for(let i=NW-1;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-7*i);ks.push(ymd(d))}
+   const ix={};ks.forEach((x,i)=>ix[x]=i);const V=St.map(()=>ks.map(()=>0));
+   rs.forEach(r=>{if(!r.date)return;const s=St.indexOf(r.l),i=ix[wk(r.date)];if(s<0||i==null)return;V[s][i]+=o.meas==='open'?(isOpen(r,o.p)?1:0):val(r)});
+   const k=HM/Math.max(1,...V.flat()),sx=.95,sz=1.7,fl=x=>x.slice(8)+'/'+x.slice(5,7);
+   St.forEach((l,s)=>{const z=(s-(n-1)/2)*sz;V[s].forEach((v,i)=>{if(v>0)box(.7,Math.max(.1,v*k),.9,STC[l],(i-(NW-1)/2)*sx,0,z,l+' · week of '+fl(ks[i])+': '+vf(v))});at(tx(l,.8),-(NW-1)/2*sx-1.6,.2,z)});
+   ks.forEach((x,i)=>{if(i%2===(NW-1)%2)at(tx(fl(x),.7),(i-(NW-1)/2)*sx,-.2,(n-1)/2*sz+1.4)});
+   C.rd=21;lg=St.map(l=>dot(STC[l],l+' '+STN[l])).join('')+'<span>Last 12 weeks · block height = '+(o.meas==='v'?'invoice value':o.meas==='open'?'not posted':'entries')+'</span>';
+  }else lg='<span>No dated entries to show.</span>'}
+ C.lg.innerHTML=lg+'<span>· Drag to rotate · hover a block for numbers</span>';C.draw()}
 const WV='M0 6q12.5-6 25 0t25 0t25 0t25 0t25 0t25 0t25 0t25 0V120H0Z';
 const gauge=(l,pct,sub,on)=>'<div class="st-g'+(on?'':' off')+'" data-l="'+l+'" style="--c:'+STC[l]+'"><svg viewBox="0 0 100 100"><defs><clipPath id="gc'+l+'"><circle cx="50" cy="50" r="44"/></clipPath></defs><circle cx="50" cy="50" r="47" fill="none" style="stroke:var(--c)" stroke-width="3"/><g clip-path="url(#gc'+l+')"><g class="gw" data-y="'+(94-pct*.88)+'" style="transform:translateY(94px)"><path class="wv" d="'+WV+'" style="fill:var(--c);opacity:.4"/><path class="wv w2" d="'+WV+'" style="fill:var(--c);opacity:.75"/></g></g><text x="50" y="56" text-anchor="middle" font-size="20" font-weight="700" style="fill:var(--tx)">'+pct+'%</text></svg><b>'+l+' · '+STN[l]+'</b><small>'+sub+'</small></div>';
 /* ---- agent ---- */
@@ -1230,15 +1290,15 @@ function agentPage(){
 /* ---- studio ---- */
 let PST=null;
 function buildStudio(){
- const root=document.createElement('div'),S={on:new Set(L),p:'migo',meas:'n',mode:'stream',data:[]};let PRV=null;
- root.innerHTML='<div class="card st-tools"></div><div class="st-gs"></div><div class="st-main"><div class="st-left"><div class="card"><h3>🌊 Fluid trend – 4 locations</h3><div class="st-fx"></div></div><div class="card"><h3>❓ Why not posted – reasons from Remarks <span class="mut" style="font-weight:400;font-size:12px">(click a bar)</span></h3><div class="st-rs"></div><div class="st-dt"></div></div></div><div class="card st-agent"><h3 style="margin:0 0 8px">🤖 AI data analyst agent</h3><div class="st-chips"></div><div class="st-msgs"></div><div class="st-in"><input class="ag-i" placeholder="Ask or command: perishable pending, GRN deficit, replace N/A with Pending…"><button type="button" class="btn ag-s2">Ask</button></div></div></div>';
+ const root=document.createElement('div'),S={on:new Set(L),p:'migo',meas:'n',mode:'loc',data:[]};let PRV=null;
+ root.innerHTML='<div class="card st-tools"></div><div class="st-gs"></div><div class="st-main"><div class="st-left"><div class="card"><h3>📊 3D view – 4 locations</h3><div class="st-fx"></div></div><div class="card"><h3>❓ Why not posted – reasons from Remarks <span class="mut" style="font-weight:400;font-size:12px">(click a bar)</span></h3><div class="st-rs"></div><div class="st-dt"></div></div></div></div>';
  const q=s=>root.querySelector(s),tools=q('.st-tools'),gs=q('.st-gs'),fx=q('.st-fx'),rs2=q('.st-rs'),dt=q('.st-dt'),msgs=q('.st-msgs'),inp=q('.ag-i');
  const chip=(a,b,on,attr)=>'<button type="button" class="tab'+(on?' on':' off')+'" '+attr+'>'+b+'</button>';
  function render(){const rs=S.data.filter(r=>S.on.has(r.l)),stores=L.filter(l=>S.on.has(l));
-  tools.innerHTML='<b>Stores</b>'+L.map(l=>'<button type="button" class="tab'+(S.on.has(l)?' on':' off')+'" data-l="'+l+'" style="'+(S.on.has(l)?'background:'+STC[l]+';border-color:'+STC[l]+';color:#fff':'')+'">'+l+'</button>').join('')+'<span class="sp"></span><select class="st-p">'+Object.keys(PN).map(k=>'<option value="'+k+'"'+(k===S.p?' selected':'')+'>'+PN[k]+'</option>').join('')+'</select>'+[['n','Entries'],['v','Invoice value'],['open','Not posted']].map(([k,t])=>chip(0,t,S.meas===k,'data-m="'+k+'"')).join('')+[['stream','Stream'],['stack','Stacked'],['line','Lines']].map(([k,t])=>chip(0,t,S.mode===k,'data-mode="'+k+'"')).join('')+'<button type="button" class="btn alt" data-cl>Classic widgets</button>';
+  tools.innerHTML='<b>Stores</b>'+L.map(l=>'<button type="button" class="tab'+(S.on.has(l)?' on':' off')+'" data-l="'+l+'" style="'+(S.on.has(l)?'background:'+STC[l]+';border-color:'+STC[l]+';color:#fff':'')+'">'+l+'</button>').join('')+'<span class="sp"></span><select class="st-p">'+Object.keys(PN).map(k=>'<option value="'+k+'"'+(k===S.p?' selected':'')+'>'+PN[k]+'</option>').join('')+'</select>'+[['n','Entries'],['v','Invoice value'],['open','Not posted']].map(([k,t])=>chip(0,t,S.meas===k,'data-m="'+k+'"')).join('')+[['loc','🏢 By store'],['time','📅 By week']].map(([k,t])=>chip(0,t,S.mode===k,'data-mode="'+k+'"')).join('')+'<button type="button" class="btn alt" data-cl>Classic widgets</button>';
   gs.innerHTML=L.map(l=>{const a=S.data.filter(r=>r.l===l),N=a.length;return gauge(l,pc(a.filter(r=>isDone(r,S.p)).length,N),N+' entries · '+a.filter(r=>isOpen(r,S.p)).length+' not posted<br>value '+fmt(sumV(a)),S.on.has(l))}).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>gs.querySelectorAll('.gw').forEach(g=>g.style.transform='translateY('+g.dataset.y+'px)')));
-  streamChart(fx,rs,{mode:S.mode,meas:S.meas,p:S.p,stores});
+  chart3d(fx,rs,{mode:S.mode,meas:S.meas,p:S.p,stores});
   const rr=reasons(rs.filter(r=>isOpen(r,S.p))),mx=rr.length?rr[0].n:1;dt.innerHTML='';
   rs2.innerHTML=rr.length?hbar(rr.slice(0,8).map(x=>({t:x.k,n:x.n,s:L.filter(l=>x.by[l]).map(l=>[STC[l],x.by[l],l+': '+x.by[l]])})),mx):'<p class="mut">Nothing is waiting for '+PN[S.p]+' in this selection 🎉</p>';
   rs2._rr=rr}
@@ -1250,15 +1310,7 @@ function buildStudio(){
   const r=e.target.closest('.st-rs .st-r');if(r){const x=(rs2._rr||[]).find(y=>y.k===r.dataset.t);if(x)dt.innerHTML='<b>'+esc(x.k)+'</b>'+x.it.slice().sort((a,b)=>(a.date||'z')<(b.date||'z')?-1:1).slice(0,8).map(i=>'<div>'+i.l+' · '+esc(vN(i))+' · inv '+esc(i.inv||'-')+' · '+(ageD(i)==null?'':ageD(i)+' days')+' · '+fmt(ivn(i))+'</div>').join('')+(x.n>8?'<div class="mut">+ '+(x.n-8)+' more</div>':'')}
   const cp=e.target.closest('[data-copy]');if(cp){try{navigator.clipboard.writeText(cp._t||'');cp.textContent='✔ Copied'}catch(er){}}});
  root.addEventListener('change',e=>{if(e.target.classList.contains('st-p')){S.p=e.target.value;render()}});
- root.addEventListener('click',async e=>{const b=e.target.closest('[data-ag]');if(!b)return;const box=b.closest('.st-m'),row=b.parentElement;row.querySelectorAll('button').forEach(x=>x.disabled=true);if(b.dataset.ag==='no'){AGX.cancel();row.insertAdjacentHTML('afterend','<p>Cancelled – nothing was changed.</p>');return}const sp=document.createElement('p');sp.textContent='Working…';row.insertAdjacentElement('afterend',sp);const h=await AGX.run((d,n,m)=>{sp.textContent=m||('Working… '+d+' / '+n)});sp.outerHTML=h;msgs.scrollTop=msgs.scrollHeight});
- const add=(k,h)=>{const d=document.createElement('div');d.className='st-m '+k;d.innerHTML=h;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;return d};
- const ask=txt=>{txt=txt.trim();if(!txt)return;add('u',esc(txt));inp.value='';const c=parseQ(txt,PRV),th=add('a','<span class="st-dots"><i></i><i></i><i></i></span>');
-  setTimeout(()=>{let a;try{a=SMART(txt,PRV);if(a){if(a.c)PRV=a.c}else if(!c.known)a={html:'I can analyse GRN (MIGO), MIRO, Forward to Accounts and Invoice scanning for the warehouse and the 3 shops, with reasons from your Remarks. Try: <i>how many perishable invoices pending location wise</i>, <i>GRN pending due to deficit</i>, <i>not received by accounts details</i>, <i>MIGO MIRO scanning percentage</i> or <i>replace N/A with Pending</i>.'};else{PRV=c;a=answer(c)}}catch(er){console.error(er);a={html:'Sorry, I could not analyse that. Please rephrase.'}}
-   th.innerHTML=a.html+(a.txt?'<div style="margin-top:8px"><button type="button" class="btn alt" data-copy style="padding:4px 10px">📋 Copy report</button></div>':'');const cb=th.querySelector('[data-copy]');if(cb)cb._t=a.txt;if(a.after)a.after(th);msgs.scrollTop=msgs.scrollHeight},420)};
- q('.ag-s2').onclick=()=>ask(inp.value);inp.addEventListener('keydown',e=>{if(e.key==='Enter')ask(inp.value)});
- q('.st-chips').innerHTML=['Perishable invoices pending location wise and date wise','How many GRN pending due to deficit?','How many price issue?','List not received by accounts details','MIGO MIRO scanning percentage','Replace N/A with Pending','Fix SL No in all sheets','Why GRN not posted in 4622?','Full report Muaither last 30 days'].map(x=>'<button type="button">'+x+'</button>').join('');
- q('.st-chips').onclick=e=>{if(e.target.tagName==='BUTTON')ask(e.target.textContent)};
- add('a','Hi! I am the built-in analyst for your 4 locations. I read the register live, count what is done or not posted, explain <b>why</b> from the Remarks column, and draw small reports with graphs. Ask in your own words – store, date range and process (GRN, MIRO…) are picked up from your question. I use all dates unless you give a period.<br><br><b>New:</b> perishable vendors (Fruits &amp; Vegetables, Fish &amp; Seafood, Butchery), pending by reason (deficit, price…), % of MIGO / MIRO / scanning, not-received-by-accounts lists and PO lookup, plus commands: <i>replace N/A with Pending</i> (I will ask which sheet) and <i>fix SL No</i>.');
+ 
  return{root,set(d){S.data=d;if(SSCUR==='studio')render()},render}}
 function mountStudio(res,data){const slot=res.querySelector('#stslot');if(!slot)return;if(!PST)PST=buildStudio();slot.appendChild(PST.root);PST.set(data)}
 function sum(){
